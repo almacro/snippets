@@ -1,0 +1,15 @@
+// Test.cpp
+
+#include <gtest/gtest.h>
+#include "VectorContainer.h"
+
+TEST(ContainerTest, ShouldBeEmptyOnStartup) {
+  VectorContainer container;
+  ASSERT_EQ(container.count(), 0);
+}
+
+TEST(ContainerTest, ShouldAdd1) {
+  VectorContainer container;
+  container.add(1);
+  ASSERT_EQ(container.count(), 1);
+}
