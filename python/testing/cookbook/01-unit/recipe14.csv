@@ -1,0 +1,6 @@
+Test,Success/Failure,Details
+test_assert_failure (recipe14.ShoppingCartTest),Failure,You should see this failure message in the report
+test_item (recipe14.ShoppingCartTest),Success
+test_length (recipe14.ShoppingCartTest),Success
+test_price (recipe14.ShoppingCartTest),Success
+test_total_with_sales_tax (recipe14.ShoppingCartTest),Success
