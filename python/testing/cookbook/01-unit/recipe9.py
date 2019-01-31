@@ -23,7 +23,7 @@ class RomanNumeralConverter(object):
 
 import unittest
 
-class RomanNumerakTest (unittest.TestCase):
+class RomanNumeralTest (unittest.TestCase):
     def setUp(self):
         self.cvt =  RomanNumeralConverter()
 
