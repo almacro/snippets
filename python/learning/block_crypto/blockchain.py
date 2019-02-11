@@ -23,7 +23,7 @@ def get_balance(participant):
     open_tx_sender = [tx['amount'] for tx
                       in open_transactions
                       if tx['sender'] == participant]
-    tx_sender.extend(open_tx_sender)
+    tx_sender.append(open_tx_sender)
     amount_sent = 0
     for tx in tx_sender:
         if len(tx) > 0:
@@ -193,5 +193,5 @@ while waiting_for_input:
         print_blockchain_elements()
         print('Invalid blockchain!')
         break
-    print(get_balance('Kwaku'))
+    print('Balance of {}: {:6.2f}'.format('Kwaku',get_balance('Kwaku')))
 print('Done!')
