@@ -1,3 +1,5 @@
+import functools
+
 # Initializing our blockchain list
 MINING_REWARD = 10
 
@@ -12,11 +14,26 @@ owner = 'Kwaku'
 participants = {'Kwaku'}
 
 
+def flatten(l):
+    """Flatten a list of lists into a one-dimensional list.
+
+    Also could use `itertools.chain(*its)` here."""
+    return [x for y in l for x in y]
+
+    
 def hash_block(block):
+    """Combine the block elements into a single hash value.
+
+    For now this just concatenates the block values into a string."""
     return '-'.join([str(block[key]) for key in block])
 
 
 def get_balance(participant):
+    """Calculate and return the balance for a participant.
+    
+    Arguments:
+        :participant: The person for whom to calculate the balance
+    """
     tx_sender = [[tx['amount'] for tx
                   in block['transactions']
                   if tx['sender'] == participant] for block in blockchain]
@@ -24,20 +41,13 @@ def get_balance(participant):
                       in open_transactions
                       if tx['sender'] == participant]
     tx_sender.append(open_tx_sender)
-    amount_sent = 0
-    for tx in tx_sender:
-        if len(tx) > 0:
-            for amount in tx:
-                amount_sent += amount
+    amount_sent = functools.reduce(lambda tx_sum, tx_amt: tx_sum + tx_amt, flatten(tx_sender), 0)
 
     tx_recipient = [[tx['amount'] for tx
                     in block['transactions']
                     if tx['recipient'] == participant] for block in blockchain]
-    amount_received = 0
-    for tx in tx_recipient:
-        if len(tx) > 0:
-            for amount in tx:
-                amount_received += amount
+    amount_received = functools.reduce(lambda tx_sum, tx_amt: tx_sum + tx_amt, flatten(tx_recipient), 0)
+
     return amount_received - amount_sent
 
 
@@ -70,6 +80,7 @@ def verify_transactions():
     """Verify pending transactions can be committed to blockchain"""
     return all([verify_transaction(tx) for tx in open_transactions])
 
+
 def add_transaction(recipient, sender=owner, amount=1.0):
     """Append a new value as well as the last blockchain value
     to the blockchain.
@@ -91,7 +102,12 @@ def add_transaction(recipient, sender=owner, amount=1.0):
         return True
     return False
 
+
 def mine_block():
+    """Mine the outstanding, pending transactions and commit them to a new block.
+    
+    Add the mining reward as a new pending transaction.
+    """
     last_block = blockchain[-1]
     hashed_block = hash_block(last_block)
     #print(hashed_block)
