@@ -1,5 +1,7 @@
 import functools
 import hashlib
+import json
+import pickle
 from collections import OrderedDict
 
 from hash_util import hash_block, hash_string_256
@@ -25,7 +27,60 @@ def flatten(l):
     Also could use `itertools.chain(*its)` here."""
     return [x for y in l for x in y]
 
+# load as json
+def load_data():
+    with open('blockchain.txt', mode='r') as f:
+        data = f.readlines()
+        global blockchain
+        global open_transactions
+        blockchain = json.loads(data[0][:-1])
+        updated_blockchain = []
+        for block in blockchain:
+            updated_block = {
+                'previous_hash': block['previous_hash'],
+                'index': block['index'],
+                'proof': block['proof'],
+                'transactions': [OrderedDict([('sender', tx['sender']),
+                                              ('recipient', tx['recipient']),
+                                              ('amount', tx['amount'])])
+                                 for tx in block['transactions']]
+            }
+            updated_blockchain.append(updated_block)
+        blockchain = updated_blockchain
+        open_transactions = json.loads(data[1])
+        open_transactions = [OrderedDict([('sender', tx['sender']),
+                                                  ('recipient', tx['recipient']),
+                                                  ('amount', tx['amount'])])
+                                     for tx in open_transactions]
 
+
+# # load as binary
+# def load_data():
+#     with open('blockchain.p', mode='rb') as f:
+#         data = pickle.loads(f.read())
+#         global blockchain
+#         global open_transactions
+#         blockchain = data['chain']
+#         open_transactions = data['otxns']
+
+load_data()
+
+# save as json
+def save_data():
+    with open('blockchain.txt', mode='w') as f:
+        f.write(json.dumps(blockchain))
+        f.write('\n')
+        f.write(json.dumps(open_transactions))
+
+
+# save as binary
+# def save_data():
+#     with open('blockchain.p', mode='wb') as f:
+#         data = {
+#             'chain': blockchain,
+#             'otxns': open_transactions
+#         }
+#         f.write(pickle.dumps(data))
 
 
 def valid_proof(transactions, last_hash, proof):
@@ -43,10 +98,10 @@ def proof_of_work():
     while not valid_proof(open_transactions, last_hash, proof):
         proof += 1
     return proof
-    
+
 def get_balance(participant):
     """Calculate and return the balance for a participant.
-    
+
     Arguments:
         :participant: The person for whom to calculate the balance
     """
@@ -74,7 +129,7 @@ def get_last_blockchain_value():
         return None
     return blockchain[-1]
 
-    
+
 def verify_chain():
     """Verify the current blockchain and return True if it's valid, False otherwise
     """
@@ -103,7 +158,7 @@ def verify_transactions():
 def add_transaction(recipient, sender=owner, amount=1.0):
     """Append a new value as well as the last blockchain value
     to the blockchain.
-    
+
     Arguments:
         :sender: The sender of the coins
         :recipient: The recipient of the coins
@@ -114,13 +169,14 @@ def add_transaction(recipient, sender=owner, amount=1.0):
         open_transactions.append(transaction)
         participants.add(transaction['sender'])
         participants.add(transaction['recipient'])
+        save_data()
         return True
     return False
 
 
 def mine_block():
     """Mine the outstanding, pending transactions and commit them to a new block.
-    
+
     Add the mining reward as a new pending transaction.
     """
     last_block = blockchain[-1]
@@ -198,6 +254,7 @@ while waiting_for_input:
     elif user_choice == '2':
         if mine_block():
             open_transactions = []
+            save_data()
     elif user_choice == '3':
         print_blockchain_elements()
     elif user_choice == '4':
