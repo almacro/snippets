@@ -1,5 +1,5 @@
-#from blockchain import Blockchain
-from hash_util import hash_block, hash_string_256
+from utility.hash_util import hash_block, hash_string_256
+from wallet import Wallet
 
 class Verification:
     @staticmethod
@@ -8,8 +8,8 @@ class Verification:
         guess = (str([tx.to_ordered_dict() for tx in transactions]) + str(last_hash) + str(proof)).encode()
         guess_hash = hash_string_256(guess)
         return guess_hash[0:2] == '00'
-        
-    @classmethod    
+
+    @classmethod
     def verify_chain(cls, blockchain):
         """Verify the current blockchain and return True if it's valid, False otherwise
         """
@@ -22,14 +22,23 @@ class Verification:
                 print('Proof of work is invalid')
                 return False
         return True
-    
+
     @staticmethod
-    def verify_transaction(transaction, get_balance):
+    def verify_transaction(transaction, get_balance, check_funds=True):
         """Verify sender has sufficient balance to allow transaction to be processed"""
-        sender_balance = get_balance(transaction.sender)
-        return sender_balance >= transaction.amount    
-    
+        if check_funds:
+            sender_balance = get_balance(transaction.sender)
+            if sender_balance < transaction.amount:
+                print('Transaction amount {} exceeds balance {}'.format(transaction.amount, sender_balance))
+                print('Insufficient balance!')
+                return False
+        if not Wallet.verify_transaction(transaction):
+            print('Bad signature => %s' % signature)
+            print('Signature verification failed!')
+            return False
+        return True
+
     @classmethod
     def verify_transactions(cls, open_transactions, get_balance):
         """Verify pending transactions can be committed to blockchain"""
-        return all([cls.verify_transaction(tx, get_balance) for tx in open_transactions])
+        return all([cls.verify_transaction(tx, get_balance, check_funds=False) for tx in open_transactions])
