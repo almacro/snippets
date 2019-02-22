@@ -25,11 +25,14 @@ class Blockchain():
         self.__host_node = host_node_id
         self.load_data()
 
+
     def get_chain(self):
         return self.__chain[:]
 
+
     def get_open_transactions(self):
         return self.__open_transactions[:]
+
 
     # load as json
     def load_data(self):
