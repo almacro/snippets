@@ -10,16 +10,16 @@ class Wallet:
     def __init__(self):
         self.private_key = None
         self.public_key = None
-        
+
     def has_keys(self):
         return self.public_key != None and self.private_key != None
-           
+
     def create_keys(self):
         private_key, public_key = self.generate_keys()
         self.private_key = private_key
         self.public_key = public_key
 
-            
+
     def save_keys(self):
         if self.has_keys():
             try:
@@ -31,24 +31,24 @@ class Wallet:
                 print('Saving wallet failed!')
         else:
             print('No keys to save!')
-            
+
     def load_keys(self):
         try:
             with open('wallet.txt', mode='r') as f:
                 keys = f.readlines()
-    
+
             self.public_key = keys[0][:-1]
             self.private_key = keys[1]
         except (IOError, IndexError):
-            print('Loading wallet failed!')        
-        
-        
+            print('Loading wallet failed!')
+
+
     def generate_keys(self):
         private_key = RSA.generate(1024, Crypto.Random.new().read)
         public_key = private_key.publickey()
         return (ascii_key(private_key), ascii_key(public_key))
-        
-        
+
+
     def sign_transaction(self, sender, recipient, amount):
         if not self.has_keys():
             print('Wallet has no keys!')
@@ -58,8 +58,8 @@ class Wallet:
         hash_ = SHA256.new((str(sender) + str(recipient) + str(amount)).encode('utf8'))
         signature = signer.sign(hash_)
         return to_ascii(signature)
-        
-    @staticmethod    
+
+    @staticmethod
     def verify_transaction(transaction):
         if(transaction.sender == 'MINING'):
             return True
