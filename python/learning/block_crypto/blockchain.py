@@ -29,8 +29,10 @@ class Blockchain():
     def chain(self):
         return self.__chain[:]
 
+
     def get_open_transactions(self):
         return self.__open_transactions[:]
+
 
     # load as json
     def load_data(self):
