@@ -25,7 +25,8 @@ class Blockchain():
         self.__host_node = host_node_id
         self.load_data()
 
-    def get_chain(self):
+    @property
+    def chain(self):
         return self.__chain[:]
 
     def get_open_transactions(self):
@@ -81,6 +82,9 @@ class Blockchain():
         Arguments:
             :participant: The person for whom to calculate the balance
         """
+        if participant == None:
+            return None
+
         tx_sender = [[tx.amount for tx
                       in block.transactions
                       if tx.sender == participant] for block in self.__chain]
@@ -132,7 +136,7 @@ class Blockchain():
         Add the mining reward as a new pending transaction.
         """
         if self.__host_node == None:
-            return False
+            return None
 
         last_block = self.__chain[-1]
         hashed_block = hash_block(last_block)
@@ -141,10 +145,10 @@ class Blockchain():
         copied_transactions = self.__open_transactions[:]
         for tx in copied_transactions:
             if not Wallet.verify_transaction(tx):
-                return False
+                return None
         copied_transactions.append(reward_transaction)
         block = Block(len(self.__chain), hashed_block, copied_transactions, proof)
         self.__chain.append(block)
         self.__open_transactions = []
         self.save_data()
-        return True
+        return block
