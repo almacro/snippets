@@ -2,45 +2,68 @@ from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA256
 import Crypto.Random
-import binascii
 
 from utility.util import to_ascii, ascii_key, to_binary
 
 class Wallet:
-    def __init__(self):
-        self.private_key = None
-        self.public_key = None
+    def __init__(self, node_id):
+        self.__private_key = None
+        self.__public_key = None
+        self.__node_id = node_id
+
+
+    @property
+    def private_key(self):
+        return self.__private_key
+
+
+    @property
+    def public_key(self):
+        return self.__public_key
+
+
+    @property
+    def node_id(self):
+        return self.__node_id
+
 
     def has_keys(self):
         return self.public_key != None and self.private_key != None
 
+
     def create_keys(self):
         private_key, public_key = self.generate_keys()
-        self.private_key = private_key
-        self.public_key = public_key
+        self.__private_key = private_key
+        self.__public_key = public_key
 
 
     def save_keys(self):
         if self.has_keys():
             try:
-                with open('wallet.txt', mode='w') as f:
+                with open('wallet-{}.txt'.format(self.node_id), mode='w') as f:
                     f.write(self.public_key)
                     f.write('\n')
                     f.write(self.private_key)
+                return True
             except (IOError, IndexError):
                 print('Saving wallet failed!')
         else:
             print('No keys to save!')
+        return False
+
 
     def load_keys(self):
         try:
-            with open('wallet.txt', mode='r') as f:
+            with open('wallet-{}.txt'.format(self.node_id), mode='r') as f:
                 keys = f.readlines()
 
-            self.public_key = keys[0][:-1]
-            self.private_key = keys[1]
+            self.__public_key = keys[0][:-1]
+            self.__private_key = keys[1]
+
+            return True
         except (IOError, IndexError):
             print('Loading wallet failed!')
+        return False
 
 
     def generate_keys(self):
@@ -58,6 +81,7 @@ class Wallet:
         hash_ = SHA256.new((str(sender) + str(recipient) + str(amount)).encode('utf8'))
         signature = signer.sign(hash_)
         return to_ascii(signature)
+
 
     @staticmethod
     def verify_transaction(transaction):
