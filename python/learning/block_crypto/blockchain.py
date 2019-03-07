@@ -1,7 +1,9 @@
+"""
+This module defines the basic blockchain behavior.
+"""
+
 import functools
-import hashlib
 import json
-import pickle
 import requests
 
 from utility.hash_util import hash_block
@@ -16,6 +18,9 @@ from wallet import Wallet
 MINING_REWARD = 10
 
 class Blockchain():
+    """
+    This class encapsulates the blockchain functions.
+    """
     def __init__(self, public_key, node_id):
         # The starting block for the blockchain
         genesis_block = Block(0, '', [], 100, 0)
@@ -31,28 +36,43 @@ class Blockchain():
 
     @property
     def chain(self):
+        """Return the chain as a read-only property."""
         return self.__chain[:]
 
     def get_open_transactions(self):
+        """Return a copy of the open transactions list."""
         return self.__open_transactions[:]
 
     # load as json
     def load_data(self):
+        """Load the blockchain state from a file store."""
         try:
-            with open('blockchain-{}.txt'.format(self.__node_id), mode='r') as f:
-                data = f.readlines()
+            with open('blockchain-{}.txt'.format(self.__node_id), mode='r') as _file:
+                data = _file.readlines()
                 self.__chain = json.loads(data[0][:-1])
                 updated_blockchain = []
                 for block in self.__chain:
-                    block_txns = [Transaction(tx['sender'], tx['recipient'], tx['signature'], tx['amount'])
+                    block_txns = [Transaction(tx['sender'],
+                                              tx['recipient'],
+                                              tx['signature'],
+                                              tx['amount'])
                                   for tx in block['transactions']]
-                    updated_block = Block(block['index'], block['previous_hash'], block_txns, block['proof'], block['timestamp'])
+                    updated_block = Block(block['index'],
+                                          block['previous_hash'],
+                                          block_txns,
+                                          block['proof'],
+                                          block['timestamp'])
                     updated_blockchain.append(updated_block)
 
                 self.__chain = updated_blockchain
                 self.__open_transactions = json.loads(data[1][:-1])
-                self.__open_transactions = [Transaction(tx['sender'], tx['recipient'], tx['signature'], tx['amount'])
-                                              for tx in self.__open_transactions]
+                self.__open_transactions = [
+                    Transaction(tx['sender'],
+                                tx['recipient'],
+                                tx['signature'],
+                                tx['amount'])
+                    for tx in self.__open_transactions
+                ]
                 peer_nodes = json.loads(data[2])
                 self.__peer_nodes = set(peer_nodes)
         except (IOError, IndexError):
@@ -61,15 +81,26 @@ class Blockchain():
 
     # save as json
     def save_data(self):
+        """Store the state of the blockchain to a file store."""
         try:
-            with open('blockchain-{}.txt'.format(self.__node_id), mode='w') as f:
-                saveable_chain = [block.__dict__ for block in [Block(block_el.index, block_el.previous_hash, [tx.__dict__ for tx in block_el.transactions], block_el.proof, block_el.timestamp) for block_el in self.__chain]]
-                f.write(json.dumps(saveable_chain))
-                f.write('\n')
+            with open('blockchain-{}.txt'.format(self.__node_id), mode='w') as _file:
+                saveable_chain = [
+                    block.__dict__ for block in [
+                        Block(block_el.index,
+                              block_el.previous_hash, [
+                                  tx.__dict__ for tx
+                                  in block_el.transactions
+                              ],
+                              block_el.proof,
+                              block_el.timestamp)
+                        for block_el in self.__chain]
+                ]
+                _file.write(json.dumps(saveable_chain))
+                _file.write('\n')
                 saveable_otxns = [tx.__dict__ for tx in self.__open_transactions]
-                f.write(json.dumps(saveable_otxns))
-                f.write('\n')
-                f.write(json.dumps(list(self.__peer_nodes)))
+                _file.write(json.dumps(saveable_otxns))
+                _file.write('\n')
+                _file.write(json.dumps(list(self.__peer_nodes)))
         except IOError:
             print('Saving blockchain failed!')
 
@@ -90,11 +121,11 @@ class Blockchain():
         Arguments:
             :participant: The person for whom to calculate the balance
         """
-        if participant == None:
-            if self.public_key == None:
+        if participant is None:
+            if self.__public_key is None:
                 return None
             else:
-                participant = self.public_key
+                participant = self.__public_key
 
         tx_sender = [[tx.amount for tx
                       in block.transactions
@@ -103,12 +134,19 @@ class Blockchain():
                           in self.__open_transactions
                           if tx.sender == participant]
         tx_sender.append(open_tx_sender)
-        amount_sent = functools.reduce(lambda tx_sum, tx_amt: tx_sum + tx_amt, flatten(tx_sender), 0)
+        amount_sent = functools.reduce(lambda tx_sum, tx_amt:
+                                       tx_sum + tx_amt, flatten(tx_sender),
+                                       0)
 
-        tx_recipient = [[tx.amount for tx
-                        in block.transactions
-                        if tx.recipient == participant] for block in self.__chain]
-        amount_received = functools.reduce(lambda tx_sum, tx_amt: tx_sum + tx_amt, flatten(tx_recipient), 0)
+        tx_recipient = [
+            [tx.amount for tx
+             in block.transactions
+             if tx.recipient == participant]
+            for block in self.__chain
+        ]
+        amount_received = functools.reduce(lambda tx_sum, tx_amt:
+                                           tx_sum + tx_amt, flatten(tx_recipient),
+                                           0)
 
         return amount_received - amount_sent
 
@@ -130,7 +168,7 @@ class Blockchain():
             :recipient: The recipient of the coins
             :amount: The amount of coins sent with the transaction (default = 1.0)
         """
-        if self.__public_key == None:
+        if self.__public_key is None:
             return False
 
         transaction = Transaction(sender, recipient, signature, amount)
@@ -161,7 +199,7 @@ class Blockchain():
 
         Add the mining reward as a new pending transaction.
         """
-        if self.__public_key == None:
+        if self.__public_key is None:
             return None
 
         last_block = self.__chain[-1]
@@ -195,17 +233,33 @@ class Blockchain():
 
 
     def add_block(self, block):
-        transactions = [Transaction(tx['sender'], tx['recipient'], tx['signature'], tx['amount']) for tx in block['transactions']]
-        proof_is_valid = verifier.valid_proof(transactions[:-1], block['previous_hash'], block['proof'])
+        """Add a block received as dictionary to the blockchain."""
+        transactions = [
+            Transaction(tx['sender'],
+                        tx['recipient'],
+                        tx['signature'],
+                        tx['amount'])
+            for tx in block['transactions']
+        ]
+        proof_is_valid = verifier.valid_proof(transactions[:-1],
+                                              block['previous_hash'],
+                                              block['proof'])
         hashes_match = hash_block(self.chain[-1]) == block['previous_hash']
         if not proof_is_valid or not hashes_match:
             return False
-        converted_block = Block(block['index'], block['previous_hash'], transactions, block['proof'], block['timestamp'])
+        converted_block = Block(block['index'],
+                                block['previous_hash'],
+                                transactions,
+                                block['proof'],
+                                block['timestamp'])
         self.__chain.append(converted_block)
         stored_transactions = self.__open_transactions[:]
         for itx in block['transactions']:
             for opentx in stored_transactions:
-                if opentx.sender == itx['sender'] and opentx.recipient == itx['recipient'] and opentx.amount == itx['amount'] and opentx.signature == itx['signature']:
+                if (opentx.sender == itx['sender'] and
+                        opentx.recipient == itx['recipient'] and
+                        opentx.amount == itx['amount'] and
+                        opentx.signature == itx['signature']):
                     try:
                         self.__open_transactions.remove(opentx)
                     except ValueError:
@@ -214,6 +268,9 @@ class Blockchain():
         return True
 
     def resolve(self):
+        """Resolves conflicts by comparing blockchain state with a peer node.
+
+        The longest valid blockchain wins."""
         winner_chain = self.chain
         replace = False
         for node in self.__peer_nodes:
@@ -223,11 +280,16 @@ class Blockchain():
                 node_chain = response.json()
                 node_chain = [Block(block['index'],
                                     block['previous_hash'],
-                                    [Transaction(tx['sender'], tx['recipient'], tx['signature'], tx['amount'])
-                                        for tx in block['transactions']],
+                                    [
+                                        Transaction(tx['sender'],
+                                                    tx['recipient'],
+                                                    tx['signature'],
+                                                    tx['amount'])
+                                        for tx in block['transactions']
+                                    ],
                                     block['proof'],
                                     block['timestamp'])
-                                for block in node_chain]
+                              for block in node_chain]
                 node_chain_length = len(node_chain)
                 local_chain_length = len(winner_chain)
                 if node_chain_length > local_chain_length and verifier.verify_chain(node_chain):
