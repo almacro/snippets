@@ -1,3 +1,7 @@
+"""
+This module defines the Transaction type.
+"""
+
 from collections import OrderedDict
 from utility.printable import Printable
 
@@ -18,6 +22,7 @@ class Transaction(Printable):
 
 
     def to_ordered_dict(self):
+        """Returns the Transaction serialized as OrderedDict."""
         return OrderedDict([('sender', self.sender),
                             ('recipient', self.recipient),
                             ('signature', self.signature),

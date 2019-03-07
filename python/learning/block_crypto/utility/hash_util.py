@@ -1,7 +1,12 @@
+"""
+This module contains helper functions for generating cryptographic hashes.
+"""
+
 import hashlib
 import json
 
 def hash_string_256(string):
+    """Generates a SHA-256 hash digest of the input"""
     return hashlib.sha256(string).hexdigest()
 
 

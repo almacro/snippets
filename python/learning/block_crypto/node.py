@@ -1,3 +1,7 @@
+"""
+This module defines the blockchain node server API.
+"""
+
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
@@ -10,16 +14,19 @@ CORS(app)
 
 @app.route('/', methods=['GET'])
 def get_node_ui():
+    """Returns the node UI."""
     return send_from_directory('ui', 'node.html')
 
 
 @app.route('/network', methods=['GET'])
 def get_network_ui():
+    """Returns the network UI."""
     return send_from_directory('ui', 'network.html')
 
 
 @app.route('/wallet', methods=['POST'])
 def create_keys():
+    """Creates keys and stores them to a new wallet."""
     wallet.create_keys()
     if wallet.save_keys():
         global blockchain
@@ -39,6 +46,7 @@ def create_keys():
 
 @app.route('/wallet', methods=['GET'])
 def load_keys():
+    """Loads a keypair from an existing wallet file store."""
     if wallet.load_keys():
         global blockchain
         blockchain = Blockchain(wallet.public_key, port)
@@ -57,8 +65,9 @@ def load_keys():
 
 @app.route('/balance', methods=['GET'])
 def get_balance():
+    """Gets a wallet's coin balance."""
     balance = blockchain.get_balance(wallet.public_key)
-    if balance != None:
+    if balance is not None:
         response = {
             'balance': balance
         }
@@ -66,14 +75,15 @@ def get_balance():
     else:
         response = {
             'message': 'Balance check failed',
-            'wallet_set_up': wallet.public_key != None,
+            'wallet_set_up': wallet.public_key is not None,
         }
         return jsonify(response), 500
 
 
 @app.route('/transaction', methods=['POST'])
 def add_transaction():
-    if wallet.public_key == None:
+    """Adds a new open transaction."""
+    if wallet.public_key is None:
         response = {
             'message': 'No wallet set up',
         }
@@ -118,13 +128,14 @@ def add_transaction():
 
 @app.route('/mine', methods=['POST'])
 def mine():
+    """Mines a block and adds it to the blockchain posting all open transactions."""
     if blockchain.resolve_conflicts:
         response = {
             'message': 'Resolve conflicts first, block not added!'
         }
         return jsonify(response), 409
     block = blockchain.mine_block()
-    if block != None:
+    if block is not None:
         dict_block = block.__dict__.copy()
         dict_block['transactions'] = [tx.__dict__ for tx in dict_block['transactions']]
         response = {
@@ -136,13 +147,14 @@ def mine():
     else:
         response = {
             'message': 'Adding a block failed',
-            'wallet_set_up': wallet.public_key != None
+            'wallet_set_up': wallet.public_key is not None
         }
         return jsonify(response), 500
 
 
 @app.route('/broadcast-block', methods=['POST'])
 def broadcast_block():
+    """Receives notification of a newly added block and adds it to blockchain."""
     values = request.get_json()
     if not values:
         response = {'message': 'No data found'}
@@ -165,16 +177,25 @@ def broadcast_block():
             }
             return jsonify(response), 409
     elif block['index'] > last_block.index:
-        response = { 'message': 'Blockchain seems to differ from local blockchain' }
+        response = {
+            'message': 'Blockchain seems to differ from local blockchain'
+        }
         blockchain.resolve_conflicts = True
         return jsonify(response), 200
     else:
-        response = { 'message': 'Blockchain seems to be shorter, block not added' }
+        response = {
+            'message': 'Blockchain seems to be shorter, block not added'
+        }
         return jsonify(response), 409
 
 
 @app.route('/broadcast-transaction', methods=['POST'])
 def broadcast_transaction():
+    """
+    Receives notification of a newly added transaction and adds it to
+    the open transactions list.
+    """
+
     values = request.get_json()
     if not values:
         response = {'message': 'No data found'}
@@ -184,7 +205,11 @@ def broadcast_transaction():
     if not all([key in values for key in required]):
         response = {'message': "Some data is missing"}
         return jsonify(response), 400
-    ok = blockchain.add_transaction(values['recipient'], values['sender'], values['signature'], values['amount'], is_receiving=True)
+    ok = blockchain.add_transaction(values['recipient'],
+                                    values['sender'],
+                                    values['signature'],
+                                    values['amount'],
+                                    is_receiving=True)
     if ok:
         response = {
             'message': 'Transaction added successfully',
@@ -206,6 +231,7 @@ def broadcast_transaction():
 
 @app.route('/resolve-conflicts', methods=['POST'])
 def resolve_conflicts():
+    """Resolves conflicts in blockchain fork."""
     replaced = blockchain.resolve()
     if replaced:
         response = {
@@ -220,6 +246,7 @@ def resolve_conflicts():
 
 @app.route('/transactions', methods=['GET'])
 def get_open_transactions():
+    """Returns the list of open transactions."""
     txs = blockchain.get_open_transactions()
     dict_txs = [tx.__dict__ for tx in txs]
     return jsonify(dict_txs), 200
@@ -227,6 +254,7 @@ def get_open_transactions():
 
 @app.route('/chain', methods=['GET'])
 def get_chain():
+    """Returns the list of blocks in the blockchain."""
     chain_snapshot = blockchain.chain
     dict_chain = [block.__dict__.copy() for block in chain_snapshot]
     for dict_block in dict_chain:
@@ -236,6 +264,7 @@ def get_chain():
 
 @app.route('/node', methods=['POST'])
 def add_node():
+    """Adds a new node to the node peers list."""
     values = request.get_json()
     if not values:
         response = {
@@ -258,6 +287,7 @@ def add_node():
 
 @app.route('/node/<node_url>', methods=['DELETE'])
 def remove_node(node_url):
+    """Removes a node from the node peers list."""
     if not node_url:
         response = {
             'message': 'No node found'
@@ -273,6 +303,7 @@ def remove_node(node_url):
 
 @app.route('/nodes', methods=['GET'])
 def get_nodes():
+    """Returns the node peers list."""
     response = {
         'all_nodes': blockchain.get_peer_nodes()
     }
