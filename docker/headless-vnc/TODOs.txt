@@ -1,0 +1,4 @@
+. cleanup launch in x.sh
+. install noVNC under ubuntu user instead of root
+. add more tools
+. add ROS distro
