@@ -1,0 +1,7 @@
+
+
+https://woohooyeah.nl/nginx-with-libressl-build-script/
+http://nginx.org/en/download.html
+https://github.com/libressl-portable/portable
+https://www.howtoforge.com/tutorial/how-to-build-nginx-from-source-on-ubuntu-1804-lts/
+https://github.com/nginxinc/docker-nginx/blob/97b65112180e0c7764465aa47a974fc7af3c99ae/mainline/stretch/Dockerfile
