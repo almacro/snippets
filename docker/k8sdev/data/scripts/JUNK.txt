@@ -1,0 +1,8 @@
+Download
+<a href="javascript:void(0)" onclick="saveck('nomachine_6.6.8_5_amd64.deb','
+
+https://download.nomachine.com/download/6.6/Linux/nomachine_6.6.8_5_amd64.deb
+
+3e814508c064b7096af51394dd5e2732
+
+');">Download</a>
