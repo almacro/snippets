@@ -1062,6 +1062,58 @@ public class Strings {
         }
     
     }
+
+    static boolean isBalanced(String s) {
+	final char OPEN_PAREN = '(';
+        final char CLOSE_PAREN = ')';
+        final char OPEN_BRACE = '{';
+        final char CLOSE_BRACE = '}';
+
+        if (s.isEmpty()) {
+            return true;
+        }
+
+        final int LEN = s.length();
+        if (LEN % 2 != 0) {
+            return false;
+        }
+
+        Stack<Character> stack = new Stack<>();
+        for (int i = 0; i < s.length(); i++) {
+            char ch = s.charAt(i);
+            switch (ch) {
+                case CLOSE_BRACE:
+                    if (stack.peek() == OPEN_BRACE) {
+                        stack.pop();
+                    } else {
+                        return false;
+                    }
+                    break;
+                case CLOSE_PAREN:
+                    if (stack.peek() == OPEN_PAREN) {
+                        stack.pop();
+                    } else {
+                        return false;
+                    }
+                    break;
+                case OPEN_BRACE:
+                case OPEN_PAREN:
+                    stack.push(ch);
+                    break;
+                default:
+                    throw new RuntimeException("got unexpected char: " + ch);
+            }
+        }
+        return stack.empty();
+    }
+    
+    static void demoIsBalanced() {
+        String[] ss = {"(){}", "({()})", "{}(", "{})"};
+        for (String s : ss) {
+            boolean check = isBalanced(s);
+            System.out.printf("%B\t%s\n", check, s);
+        }	
+    }
     
     static void scratch() {
         String s = "foo bar's";
@@ -1117,6 +1169,7 @@ public class Strings {
         //demoSortByLength();
         //demoNotRegexMatch();
         demoIsDashAlphanum();
+	demoIsBalanced();
         //scratch();
     }
 }
