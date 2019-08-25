@@ -1,2 +1,4 @@
 *~
 *-e
+*.pem
+*csr.json
