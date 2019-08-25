@@ -1083,14 +1083,14 @@ public class Strings {
             char ch = s.charAt(i);
             switch (ch) {
                 case CLOSE_BRACE:
-                    if (stack.peek() == OPEN_BRACE) {
+                    if (!stack.empty() && stack.peek() == OPEN_BRACE) {
                         stack.pop();
                     } else {
                         return false;
                     }
                     break;
                 case CLOSE_PAREN:
-                    if (stack.peek() == OPEN_PAREN) {
+                    if (!stack.empty() && stack.peek() == OPEN_PAREN) {
                         stack.pop();
                     } else {
                         return false;
@@ -1108,7 +1108,20 @@ public class Strings {
     }
     
     static void demoIsBalanced() {
-        String[] ss = {"(){}", "({()})", "{}(", "{})"};
+        String[] ss = {
+	    "{}()",
+	    "({()})",
+	    "{}(",
+	    "(){}",
+	    "{})",
+	    "((()))",
+	    "({}{})",
+	    "({)})",
+	    "}{",
+	    ")(",
+	    ")()",
+	    "({)}"
+	};
         for (String s : ss) {
             boolean check = isBalanced(s);
             System.out.printf("%B\t%s\n", check, s);
