@@ -1,0 +1,22 @@
+#!/usr/local/bin/tcc -run
+
+#include <stdio.h>
+
+void testfunc( void );
+
+int main()
+{
+  int ctr;
+  for( ctr = 1; ctr <= 8; ++ctr )
+  {
+    testfunc();
+  }
+  return 0;
+}
+
+void testfunc( void )
+{
+  static int v;
+  printf( "%d\n", 2*v );
+  ++v;
+}

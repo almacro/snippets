@@ -1,0 +1,13 @@
+#!/usr/local/bin/tcc -run
+
+/* strrchr.c */
+
+#include <stdio.h>
+
+#include <string.h>
+
+int main()
+{
+  char *s = "Black White Brown Blue Green";
+  puts( strstr( s, "Blue" ) );
+}

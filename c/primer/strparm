@@ -1,0 +1,48 @@
+#!/usr/local/bin/tcc -run
+/* strparm.c */
+
+#include <stdio.h>
+#include <string.h>
+
+char *strtest( char *a, char *b );
+
+int main()
+{
+  char a[256],
+       b[256],
+       c[256];
+
+  strcpy( a, "STRING A: ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" );
+  strcpy( b, "STRING B: ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" );
+  strcpy( c, "STRING C: ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" );
+
+  printf( "Initial values of strings:\n" );
+  printf( "\n" );
+  printf( "    a = %s\n", a );
+  printf( "    b = %s\n", b );
+  printf( "    c = %s\n", c );
+  printf( "\n" );
+
+  strcpy( c, strtest( a, b ));
+
+  printf( "Final values of strings:\n" );
+  printf( "\n" );
+  printf( "    a = %s\n", a );
+  printf( "    b = %s\n", b );
+  printf( "    c = %s\n", c );
+  printf( "\n" );
+
+  return 0;
+}
+
+char *strtest( char *x, char *y )
+{
+  printf( "Values passed to function:\n" );
+  printf( "\n" );
+  printf( "    x = %s\n", x );
+  printf( "    y = %s\n", y );
+  printf( "\n" );
+  
+  strcpy( y, "NEWSTRING B: abcdefghijklmnopqrstuvwxyz0123456789" );
+  return "NEWSTRING C: abcdefghijklmnopqrstuvwxyz0123456789";
+}

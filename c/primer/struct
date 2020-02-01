@@ -1,0 +1,30 @@
+#!/usr/local/bin/tcc -run
+
+#include <stdio.h>
+#include <string.h>
+
+struct person                             /* Define structure type */
+{
+  char name[50];
+  int age;
+  float wage;
+};
+
+void display( struct person );
+
+int main()
+{
+  struct person m;                        /* Declare an instance of it */
+  strcpy( m.name, "Coyote, Wile E." );    /* Initialize it */
+  m.age = 41;
+  m.wage = 25.50f;
+  display( m );
+  return 0;
+}
+
+void display( struct person p )
+{
+  printf( "Name: %s\n", p.name );
+  printf( "Age:  %d\n", p.age );
+  printf( "Wage: %4.2f\n", p.wage);
+}

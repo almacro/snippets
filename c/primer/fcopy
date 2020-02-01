@@ -1,0 +1,41 @@
+#!/usr/local/bin/tcc -run
+
+/* fcopy.c */
+
+#include <stdio.h>
+#include <stdlib.h>
+
+
+#define MAX 256
+
+void main()
+{
+  FILE *src, *dst;
+  char b[MAX];
+
+  /* Try to open source and destination files. */
+
+  if ( ( src = fopen( "infile.txt", "r" )) == NULL )
+  {
+     puts( "Can't open input file." );
+     exit(1);
+  }
+  if ( (dst = fopen( "outfile.txt", "w" )) == NULL )
+  {
+     puts( "Can't open output file." );
+     fclose( src );
+     exit(1);
+  }
+
+  /* Copy one file to the next. */
+
+  while( ( fgets( b, MAX, src ) ) != NULL )
+  {
+     fputs( b, dst );
+  }
+
+  /* All done, close up shop. */
+
+  fclose( src );
+  fclose( dst );
+}

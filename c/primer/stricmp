@@ -1,0 +1,36 @@
+#!/usr/local/bin/tcc -run
+
+/* stricmp.c */
+
+#include <ctype.h>
+#include <stdio.h>
+
+#define ANSWER "blue"
+
+/*
+ * stricmp is not a standard C function.
+ * c.f., https://stackoverflow.com/questions/30733786/c99-remove-stricmp-and-strnicmp
+ */
+int stricmp(const char *a, const char *b) {
+  int ca, cb;
+  do {
+     ca = (unsigned char) *a++;
+     cb = (unsigned char) *b++;
+     ca = tolower(toupper(ca));
+     cb = tolower(toupper(cb));
+   } while (ca == cb && ca != '\0');
+   return ca - cb;
+}
+
+int main()
+{
+  char t[100];
+  puts( "What is the secret color?" );
+  gets( t );
+  while ( stricmp( t, ANSWER ) != 0 )
+  {
+    puts( "Wrong, try again." );
+    gets( t );
+  }
+  puts( "Right!" );
+}

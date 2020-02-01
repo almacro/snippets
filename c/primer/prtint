@@ -1,0 +1,14 @@
+#!/usr/local/bin/tcc -run
+
+/* prtint.c */
+
+#include <stdio.h>
+
+int main(void)
+{
+  printf( "<%d>\n", 336 );
+  printf( "<%2d>\n", 336 );
+  printf( "<%10d>\n", 336 );
+  printf( "<%-10d>\n", 336 );
+  return 0;
+}

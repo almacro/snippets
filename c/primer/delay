@@ -1,0 +1,27 @@
+#!/usr/local/bin/tcc -run
+
+/* delay.c */
+
+#include <stdio.h>
+
+#include <time.h>
+
+void sleep( time_t delay );
+
+void main()
+{
+  puts( "Delaying for 3 seconds." );
+  sleep( 3 );
+  puts( "Done!" );
+}
+
+void sleep( time_t delay )
+{
+  time_t t0, t1;
+  time( &t0 );
+  do
+  {
+    time( &t1 );
+  }
+  while (( t1 - t0 ) < delay );
+}

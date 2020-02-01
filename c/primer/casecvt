@@ -1,0 +1,40 @@
+#!/usr/local/bin/tcc -run
+
+/* casecvt.c */
+
+#include <ctype.h>
+#include <stdio.h>
+#include <string.h>
+
+/*
+ * strlwr not found in standard library
+ * This version adapted from chromium:
+ * c.f., https://chromium.googlesource.com/native_client/nacl-newlib/+/old/master/newlib/libc/string/strlwr.c
+ */
+char *strlwr(char *s)
+{
+  unsigned char *ucs = (unsigned char *) s;
+  for ( ; *ucs != '\0'; ucs++ )
+  {
+    *ucs = tolower(*ucs);
+  }
+  return s;
+}
+
+/* Adapted from above */
+char *strupr(char *s)
+{
+  unsigned char *ucs = (unsigned char *) s;
+  for ( ; *ucs != '\0'; ucs++ )
+  {
+    *ucs = toupper(*ucs);
+  }
+  return s;
+}
+
+int main()
+{
+  char *t = "Hey Barney hey!";
+  puts( strlwr( t ) );
+  puts( strupr( t ) );
+}

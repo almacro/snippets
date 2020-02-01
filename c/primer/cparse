@@ -1,0 +1,66 @@
+#!/usr/local/bin/tcc -run
+
+/* cparse.c */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+main( int argc, char *argv[] )
+{
+  int m, n,                              /* Loop counters. */
+      l,                                 /* String length. */
+      x,                                 /* Exit code. */
+      ch;                                /* Character buffer. */
+  char s[256];                           /* String buffer. */
+
+  for( n = 1; n < argc; n++ )            /* Scan through args. */
+  {
+    switch( (int)argv[n][0] )            /* Check for option character. */
+    {
+    case '-':
+    case '/': x = 0;                   /* Bail out if 1. */
+              l = strlen( argv[n] );
+              for( m = 1; m < l; ++m ) /* Scan through options. */
+              {
+                ch = (int)argv[n][m];
+                switch( ch )
+                {
+                case 'a':              /* Legal options. */
+                case 'A':
+                case 'b':
+                case 'B':
+                case 'C':
+                case 'd':
+                case 'D': printf( "Option code = %c\n", ch );
+                          break;
+                case 's':              /* String parameter. */
+                case 'S': if( m + 1 >= l )
+                          {
+                            puts( "Illegal syntax -- no string!" );
+                            exit( 1 );
+                          }
+                          else
+                          {
+                            strcpy( s, &argv[n][m+1] );
+                            printf( "String = %s\n", s );
+                          }
+                          x = 1;
+                          break;
+                default:  printf( "Illegal option code = %c\n", ch );
+                          x = 1;      /* Not legal option. */
+                          exit( 1 );
+                          break;
+                }
+                if( x == 1 )
+                {
+                  break;
+                }
+              }
+              break;
+    default:  printf( "Text = %s\n", argv[n] ); /* Not option -- text. */
+              break;
+    }
+  }
+  puts( "DONE!" );
+}

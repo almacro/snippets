@@ -1,0 +1,25 @@
+#!/usr/local/bin/tcc -run
+
+/* ptrroot.c */
+
+#include <stdio.h>
+
+#include <math.h>
+
+void testfunc ( char *name, double (*func_ptr) () );
+
+void main()
+{
+  testfunc( "square root", sqrt );
+}
+
+void testfunc ( char *name, double (*func_ptr) () )
+{
+  int c;
+
+  printf( "Testing function %s:\n\n", name );
+  for( c=0; c < 20; ++c )
+  {
+    printf( "%d: %f\n", c, (*func_ptr)( (double)c ) );
+  }
+}

@@ -1,0 +1,17 @@
+#!/usr/local/bin/tcc -run
+
+/* frdata.c */
+
+#include <stdio.h>
+
+void main()
+{
+  int n1;
+  float n2;
+  FILE *fp;
+
+  fp = fopen( "data", "r" );
+  fscanf( fp, "%d %f", &n1, &n2 );
+  printf( "%d %f", n1, n2 );
+  fclose( fp );
+}

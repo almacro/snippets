@@ -1,0 +1,15 @@
+#!/usr/local/bin/tcc -run
+
+/* lfilter.c */
+
+#include <stdio.h>
+
+int main(void)
+{
+  char b[256];
+  while (( fgets(b, 256, stdin)) != NULL )
+  {
+    puts( b );
+  }
+  return 0;
+}

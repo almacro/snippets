@@ -1,0 +1,29 @@
+#!/usr/local/bin/tcc -run
+
+/* cgets.c */
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+int main(void)
+{
+  char word[256],
+       *guess = "blue\n";
+  int i, n = 0;
+
+  puts( "Guess a color (use lower case please):" );
+  while( fgets(word, 256, stdin) != NULL )
+  {
+    if( strcmp( word, guess ) == 0 )
+    {
+      puts( "You win!" );
+      break;
+    }
+    else
+    {
+      puts( "No, try again." );
+    }
+  }
+  return 0;
+}

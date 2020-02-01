@@ -1,0 +1,12 @@
+#!/usr/local/bin/tcc -run
+
+/* ptrprt.c */
+
+#include <stdio.h>
+
+void main()
+{
+  int (*func_ptr) ();                  /* Declare the pointer. */
+  func_ptr = printf;                   /* Assign it a function. */
+  (*func_ptr) ( "Printf is here!\n" ); /* Execute the function. */
+}

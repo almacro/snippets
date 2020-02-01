@@ -1,0 +1,55 @@
+#!/usr/local/bin/tcc -run
+
+/* casemix.c */
+
+/*
+ * This example adapted from crt_strlwr.c
+ * c.f., https://github.com/MicrosoftDocs/cpp-docs/blob/master/docs/c-runtime-library/reference/strlwr-wcslwr-mbslwr-strlwr-l-wcslwr-l-mbslwr-l.md
+ */
+
+#include <ctype.h>
+#include <stdio.h>
+#include <string.h>
+
+/*
+ * strlwr not found in standard library
+ * This version adapted from chromium:
+ * c.f., https://chromium.googlesource.com/native_client/nacl-newlib/+/old/master/newlib/libc/string/strlwr.c
+ */
+char *strlwr(char *s)
+{
+  unsigned char *ucs = (unsigned char *) s;
+  for ( ; *ucs != '\0'; ucs++ )
+  {
+    *ucs = tolower(*ucs);
+  }
+  return s;
+}
+
+/* Adapted from above */
+char *strupr(char *s)
+{
+  unsigned char *ucs = (unsigned char *) s;
+  for ( ; *ucs != '\0'; ucs++ )
+  {
+    *ucs = toupper(*ucs);
+  }
+  return s;
+}
+
+int main()
+{
+   char string[100] = "The String to End All Strings!";
+   char *copy1 = strdup( string ); // make two copies
+   char *copy2 = strdup( string );
+
+   strlwr( copy1 ); 
+   strupr( copy2 );
+
+   printf( "Mixed: %s\n", string );
+   printf( "Lower: %s\n", copy1 );
+   printf( "Upper: %s\n", copy2 );
+
+   free( copy1 );
+   free( copy2 );
+}

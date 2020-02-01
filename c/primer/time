@@ -1,0 +1,13 @@
+#!/usr/local/bin/tcc -run
+
+/* time.c */
+
+#include <stdio.h>
+#include <time.h>
+
+void main()
+{
+  time_t *t;
+  time( t );
+  puts( ctime( t ));
+}

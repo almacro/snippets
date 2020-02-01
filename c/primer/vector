@@ -1,0 +1,94 @@
+#!/usr/local/bin/tcc -run
+
+#include <stdio.h>
+#include <math.h>
+
+#define PI 3.141592654
+
+struct v
+{
+  double i, j, k;
+};
+
+void vadd( struct v, struct v, struct v* );
+void vprint( struct v );
+void vsub( struct v, struct v, struct v* );
+double vnorm( struct v );
+double vdot( struct v, struct v );
+double vangle( struct v, struct v );
+void vcross( struct v, struct v, struct v* );
+
+int main()
+{
+  struct v v1 = { 1, 2, 3 }, v2 = { 30, 50, 100 }, v3;
+  double a;
+
+  printf( "Sample Vector 1: " );
+  vprint( v1 );
+  printf( "Sample Vector 2: " );
+  vprint( v2 );
+  
+  vadd( v1, v2, &v3 );
+  printf( "Vector Add:      " );
+  vprint( v3 );
+
+  vsub( v1, v2, &v3 );
+  printf( "Vector Subtract: " );
+  vprint( v3 );
+
+  vcross( v1, v2, &v3 );
+  printf( "Cross Product:   " );
+  vprint( v3 );
+
+  printf( "\n" );
+  printf( "Vector 1 Norm:  %f\n", vnorm( v1 ) );
+  printf( "Vector 2 Norm:  %f\n", vnorm( v2 ) );
+  printf( "Dot Product:    %f\n", vdot( v1, v2 ) );
+  a = 180 * vangle( v1, v2 ) / PI ;
+  printf( "Angle:          %3f degrees.\n", a );
+
+  return 0;
+}
+
+void vadd( struct v a, struct v b, struct v *c)    /* Add vectors. */
+{
+  c->i = a.i + b.i;
+  c->j = a.j + b.j;
+  c->k = a.k + b.k;  
+}
+
+double vangle( struct v a, struct v b )            /* Get angle between vectors. */
+{
+  double c;
+  c = vdot( a, b ) / ( vnorm( a ) * vnorm( b ) );
+  return acos( c );
+}
+
+void vcross( struct v a, struct v b, struct v *c)    /* Cross vectors. */
+{
+  c->i = a.j * b.k - a.k * b.j;
+  c->j = a.k * b.i - a.i * b.k;
+  c->k = a.i * b.j - a.j * b.i;
+}
+
+double vdot( struct v a, struct v b )                /* Dot product of vectors. */
+{
+  return a.i * b.i + a.j * b.j + a.k * b.k;
+}
+
+double vnorm ( struct v a )                          /* Norm of vectors. */
+{
+  return sqrt( a.i * a.i + a.j * a.j + a.k * a.k );
+}
+
+void vprint ( struct v a )                           /* Print vector. */
+{
+  printf( " I = %6.2f  J = %6.2f  K = %6.2f\n", a.i, a.j, a.k );
+}
+
+void vsub ( struct v a, struct v b, struct v *c )    /* Subtract vectors. */
+{
+  c->i = a.i - b.i;
+  c->j = a.j - b.j;
+  c->k = a.k - b.k;
+}
