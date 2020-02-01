@@ -1,0 +1,12 @@
+#!/usr/local/bin/tcc -run
+/* loop_rdata.c */
+
+void main()
+{
+  float rdata[5] = { 1.2, 3.45, 6.78, 9.99, 1.011 };
+  unsigned int i;
+  for( i = 0; i < 5; i = i + 1 )
+  {
+    printf ( "%f\n", rdata[i] );
+  }
+}

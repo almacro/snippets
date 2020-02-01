@@ -1,0 +1,19 @@
+#!/usr/local/bin/tcc -run
+
+/* strrchr.c */
+
+#include <stdio.h>
+
+#include <string.h>
+
+int main()
+{
+  char *t = "MEAS:VOLT:DC?";
+  char *p;
+  p = t;
+  puts( p );
+  while(( p = strrchr( p, ':' )) != NULL )
+  {
+    puts( ++p );
+  }
+}

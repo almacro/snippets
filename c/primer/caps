@@ -1,0 +1,43 @@
+#!/usr/local/bin/tcc -run
+
+/* caps.c */
+
+#include <stdio.h>
+#include <ctype.h>
+
+#define SEEK 0
+#define REPLACE 1
+
+int main(void)
+{
+  int ch, state = SEEK;
+  while(( ch = getchar() ) != EOF)
+  {
+    switch( state )
+    {
+    case REPLACE:
+      switch( ch )
+      {
+      case ' ':
+      case '\t':
+      case '\n':  state = SEEK;
+                  break;
+      default:    ch = tolower( ch );
+                  break;
+      }
+      break;
+    case SEEK:
+      switch( ch )
+      {
+      case ' ':
+      case '\t':
+      case '\n':  break;
+      default:    ch = toupper( ch );
+                  state = REPLACE;
+                  break;
+      } 
+    }
+    putchar( ch );
+  }
+  return 0;
+}

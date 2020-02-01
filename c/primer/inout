@@ -1,0 +1,16 @@
+#!/usr/local/bin/tcc -run
+
+/* inout.c */
+
+#include <stdio.h>
+
+int main(void)
+{
+  unsigned int ch;
+
+  while((ch = getchar()) != EOF)
+  {
+    putchar( ch );
+  }
+  return 0;
+}

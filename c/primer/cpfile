@@ -1,0 +1,63 @@
+#!/usr/local/bin/tcc -run
+
+/* cpfile.c */
+
+#include <stdio.h>
+#include <stdlib.h>
+#define MAX 256
+
+void main( unsigned int argc, unsigned char *argv[] )
+{
+
+  FILE *src, *dst;
+  char b[MAX];
+
+  /* Try to open source and destination files. */
+
+  switch (argc)
+  {
+  case 1:          /* No parameters, use stdin-stdout. */
+    src = stdin;
+    dst = stdout;
+    break;
+
+  case 2:          /* One parameter -- use input file & stdout. */
+    if ( ( src = fopen( argv[1], "r" )) == NULL )
+    {
+       puts( "Can't open input file.\n" );
+       exit( 0 );
+    }
+    dst = stdout;
+    break;
+
+  case 3:         /* Two parameters -- use input and output files. */
+    if ( ( src = fopen( argv[1], "r" )) == NULL )
+    {
+       puts( "Can't open input file.\n" );
+       exit( 0 );
+    }
+    if ( ( dst = fopen( argv[2], "w" )) == NULL )
+    {
+       puts( "Can't open output file.\n" );
+       exit( 0 );
+    }
+    break;
+
+  default:        /* Too many parameters. */
+    puts( "Wrong parameters.\n" );
+    exit( 0 );
+
+  }
+
+  /* Copy one file to the next. */
+
+  while( ( fgets( b, MAX, src ) ) != NULL )
+  {
+     fputs( b, dst );
+  }
+
+  /* All done, close up shop. */
+
+  fclose( src );
+  fclose( dst );
+}

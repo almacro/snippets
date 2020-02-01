@@ -1,0 +1,14 @@
+#!/usr/local/bin/tcc -run
+
+/* prtstr.c */
+
+#include <stdio.h>
+
+int main(void)
+{
+  printf( "<%2s>\n", "Barney must die!" );
+  printf( "<%22s>\n", "Barney must die!" );
+  printf( "<%22.5s>\n", "Barney must die!" );
+  printf( "<%-22.5s>\n", "Barney must die!" );
+  return 0;
+}

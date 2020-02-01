@@ -1,0 +1,22 @@
+#!/usr/local/bin/tcc -run
+/* fire.c */
+
+#include <stdio.h>
+
+void fire( int n );
+
+void main()
+{
+  printf( "Firing!\n" );
+  fire( 5 );
+  printf( "Fired!\n" );
+}
+
+void fire( int n )
+{
+  int i;
+  for ( i = 1; i <= n; ++i )
+  {
+    printf( "BANG!\n" );
+  }
+}

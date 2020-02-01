@@ -1,0 +1,30 @@
+#!/usr/local/bin/tcc -run
+
+/* fwrrd.c */
+
+#include <stdio.h>
+
+#include <math.h>
+
+#define SIZE 20
+
+void main()
+{
+  int n;
+  float d[SIZE];
+  FILE *fp;
+
+  for( n = 0; n < SIZE; ++n )                 /* Fill array with roots. */
+  {
+    d[n] = (float)sqrt( (double)n );
+  }
+  fp = fopen( "data", "w+" );                 /* Open file. */
+  fwrite( d, sizeof( float ), SIZE, fp );     /* Write it to file. */
+  rewind( fp );                               /* Rewind file. */
+  fread( d, sizeof( float ), SIZE, fp );      /* Read back data. */
+  for( n = 0; n < SIZE; ++n )                 /* Print array. */
+  {
+    printf( "%2d: %7.3f\n", n, d[n] );
+  }
+  fclose( fp );                               /* Close file. */
+}
