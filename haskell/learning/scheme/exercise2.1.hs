@@ -1,4 +1,4 @@
--- Exercise 1
+-- Exercise 2.1
 --
 -- Change the program (listing2.hs) so it reads two
 -- arguments from the command line, and prints out

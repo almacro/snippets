@@ -1,4 +1,4 @@
--- Exercise 2
+-- Exercise 2.2
 --
 -- Change the program (listing2.hs) so it performs a
 -- simple arithmetic operation on the two arguents
