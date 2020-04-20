@@ -19,3 +19,4 @@ c.f.,
 * [HOWTO Install IDLE Python on Ubuntu](https://vitux.com/how-to-install-idle-python-ide-on-your-ubuntu/)
 * [Barnsley's Fern solution](https://pythonturtle.academy/drawing-barnsleys-fern-with-chaos-game-solution-included/)
 * [Sarah Bricault's Recursive Drawing](http://bricault.mit.edu/recursive-drawing)
+* [Eli Bendersky on Recursion, Continuations and Trampolines](https://eli.thegreenplace.net/2017/on-recursion-continuations-and-trampolines/)
