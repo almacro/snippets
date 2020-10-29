@@ -1,0 +1,21 @@
+[
+  {
+    "hostname": "switch-a",
+    "domain_name": "domain.local",
+    "management_ip": "10.0.0.1",
+    "vlans": [
+      {
+        "name": "Data",
+        "id": 100
+      },
+      {
+        "name": "Voice",
+        "id": 200
+      },
+      {
+        "name": "Server",
+        "id": 300
+      }
+    ]
+  }
+]
