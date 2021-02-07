@@ -45,8 +45,9 @@
                   ms (:map param-map)
                   attrs (when ms (str/join (map map->str ms)))
                   open-tag (mk-open-tag kw attrs)
-                  ps (reverse (:content param-map))
-                  content (str/join ps)
+                  content (-> :content param-map
+                              reverse
+                              str/join)
                   close-tag (mk-close-tag kw)]
               (str acc open-tag content close-tag acc)))
           ""
@@ -58,12 +59,13 @@
 ;; (let [my-doc [:p "This paragraph is just an "
 ;;               [:a {:href "http://example.com"} "example"] "."]]
 ;;   (my-hiccup* my-doc))
-(let [my-doc [:html
-              [:head
-               [:title "HTML output from vectors!"]]
-              [:body
-               [:h1 {:id "page-title"} "HTML output from vectors!"]
-               [:div {:class "main-content"}
-                [:p "converting nested lists into HTML is an old Lisp trick"]
-                [:p "But Clojure uses vectors instead."]]]]]
-  (my-hiccup my-doc))
+
+;; (let [my-doc [:html
+;;               [:head
+;;                [:title "HTML output from vectors!"]]
+;;               [:body
+;;                [:h1 {:id "page-title"} "HTML output from vectors!"]
+;;                [:div {:class "main-content"}
+;;                 [:p "converting nested lists into HTML is an old Lisp trick"]
+;;                 [:p "But Clojure uses vectors instead."]]]]]
+;;   (my-hiccup my-doc))
