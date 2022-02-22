@@ -1,0 +1,77 @@
+def GCLOUD_PROJECT_ID = "** YOUR GCP PROJECT HERE **"
+def GCLOUD_ACCOUNT    = "** YOUR GSERVICEACCOUNT HERE **"
+
+node('gcloud') {
+    stage('Setup') {
+        cleanWs()
+        withCredentials([file(credentialsId: 'gcp-keyfile', variable: 'GCLOUD_KEY')]) {
+            sh("gcloud auth activate-service-account --key-file=${GCLOUD_KEY}")
+        }
+    }
+    stage('Download') {
+        // Download Terraform
+        if(!fileExists('terraform')) {
+            sh label: '', 
+               script: 'curl http://mirror/terraform/1.0.11/terraform_1.0.11_linux_amd64.zip \
+                  --output terraform_1.0.11_linux_amd64.zip \
+                  && unzip terraform_1.0.11_linux_amd64.zip'
+        }
+        sh('./terraform -version' )       
+    }
+    stage('Create-Resource') {
+        /*
+        withCredentials([file(credentialsId: 'gcp-keyfile', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+            sh script: "gcloud --project=$GCLOUD_PROJECT_ID compute networks create data --subnet-mode custom"
+            sh script: "gcloud --project=$GCLOUD_PROJECT_ID compute networks subnets create data --network data --range 10.1.0.0/16 --enable-private-ip-google-access --region us-west1"
+        }
+        */
+        writeFile file: 'main.tf',
+                  text: '''locals {
+                      region      = "us-west1"
+                      environment = "dev"
+                  }
+                  
+                  resource "google_compute_network" "data" {
+                      name = "data"
+                      auto_create_subnetworks = false
+                  }
+                  
+                  resource "google_compute_subnetwork" "data" {
+                      name          = "data"
+                      ip_cidr_range = "10.1.0.0/16"
+                      region        = "us-west1"
+                      private_ip_google_access = true
+                      network       = google_compute_network.data.id
+                  }
+'''
+        sh label: '',
+           script: "printf \
+                    'provider \"google\" {\n\tproject = \"%s\"\n\tregion = \"%s\"\n\tzone = \"%s\"\n}\n' \
+                    $GCLOUD_PROJECT_ID 'us-west1' 'us-west1-b' \
+                    > provider.tf"
+    }
+    stage("Config-Init") {
+        sh('./terraform init')
+    }
+    stage("Config-Plan") {
+        withCredentials([file(credentialsId: 'gcp-keyfile', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+            sh('./terraform plan -out s1.tfplan')
+        }
+    }
+    stage("Config-Apply") {
+        withCredentials([file(credentialsId: 'gcp-keyfile', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+            sh('./terraform apply s1.tfplan')
+        }
+    }
+    stage("Config-Show") {
+        withCredentials([file(credentialsId: 'gcp-keyfile', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+            sh('./terraform show')
+        }
+    }
+    stage("Config-Destroy") {
+        input 'Destroy?'
+        withCredentials([file(credentialsId: 'gcp-keyfile', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+            sh('./terraform destroy -auto-approve')
+        }
+    }
+}

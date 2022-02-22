@@ -1,0 +1,80 @@
+def aws_session_token = "** YOUR AWS STS HERE **";
+def aws_access_key_id = "** YOUR AWS ACCESS KEY HERE **";
+def aws_secret_access_key = "** YOUR SECRET ACEESS KEY HERE **";
+def aws_region = "us-west-2";
+
+node ("aws") {
+    stage("Init") {
+        cleanWs()
+    }
+    stage("Foo") {
+        withEnv(["AWS_SESSION_TOKEN=${aws_session_token}",
+                 "AWS_ACCESS_KEY_ID=${aws_access_key_id}",
+                 "AWS_SECRET_ACCESS_KEY=${aws_secret_access_key}",
+                 "AWS_DEFAULT_REGION=${aws_region}"]) {
+            sh (label: "do something with aws cli",
+                script: """
+                    aws ec2 describe-regions
+                """,
+                returnStdout: false
+            )            
+        }
+    }
+    stage("Download") {
+        if(!fileExists('terraform')) {
+            // Download Terraform
+            sh label: '', script: 'curl http://mirror/terraform/1.0.11/terraform_1.0.11_linux_amd64.zip \
+                --output terraform_1.0.11_linux_amd64.zip \
+                && unzip terraform_1.0.11_linux_amd64.zip'
+            sh script: './terraform -version'
+        }
+    }
+    stage("Define Resource") {
+        // write new file with a resource in it
+        writeFile file: 'main.tf', 
+                  text: '''resource "aws_instance" "helloworld" { 
+  ami           = "ami-09dd2e08d601bff67" 
+  instance_type = "t3a.micro" 
+  tags = { 
+    Name = "HelloWorld" 
+  } 
+}
+'''
+    }
+    stage("Config-Init") {
+        sh script: './terraform init'
+    }
+    stage("Config-Plan") {
+        withEnv(["AWS_SESSION_TOKEN=${aws_session_token}",
+                 "AWS_ACCESS_KEY_ID=${aws_access_key_id}",
+                 "AWS_SECRET_ACCESS_KEY=${aws_secret_access_key}",
+                 "AWS_DEFAULT_REGION=${aws_region}"]) {
+            sh script: './terraform plan -out s1.tfplan'
+        }
+    }
+    stage("Config-Apply") {
+        withEnv(["AWS_SESSION_TOKEN=${aws_session_token}",
+                 "AWS_ACCESS_KEY_ID=${aws_access_key_id}",
+                 "AWS_SECRET_ACCESS_KEY=${aws_secret_access_key}",
+                 "AWS_DEFAULT_REGION=${aws_region}"]) {
+            sh script: './terraform apply s1.tfplan'
+        }        
+    }
+    stage("Config-Show") {
+        withEnv(["AWS_SESSION_TOKEN=${aws_session_token}",
+                 "AWS_ACCESS_KEY_ID=${aws_access_key_id}",
+                 "AWS_SECRET_ACCESS_KEY=${aws_secret_access_key}",
+                 "AWS_DEFAULT_REGION=${aws_region}"]) {
+            sh script: './terraform show'
+        }        
+    }
+    stage('Destroy') {
+        input 'Destroy?'
+        withEnv(["AWS_SESSION_TOKEN=${aws_session_token}",
+                 "AWS_ACCESS_KEY_ID=${aws_access_key_id}",
+                 "AWS_SECRET_ACCESS_KEY=${aws_secret_access_key}",
+                 "AWS_DEFAULT_REGION=${aws_region}"]) {
+            sh script: './terraform destroy -auto-approve'
+        }        
+    }
+}
