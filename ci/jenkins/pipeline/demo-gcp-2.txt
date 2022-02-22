@@ -1,0 +1,141 @@
+def GCLOUD_PROJECT_ID = "** YOUR GCP PROJECT HERE **"
+def GCLOUD_ACCOUNT    = "** YOUR GSERVICEACCOUNT HERE **"
+
+node('gcloud') {
+    environment {
+        KEYTEXT = '** YOUR KEYTEXT HERE **'
+        SSH_PRIVKEY = sh script: "cat $KEYTEXT | base64 -d", returnStdout: true
+        SSH_PUBKEY = "** YOUR PUBKEY HERE **"
+    }
+    stage('Setup') {
+        cleanWs()
+        withCredentials([file(credentialsId: 'gcp-keyfile', variable: 'GCLOUD_KEY')]) {
+            sh("gcloud auth activate-service-account --key-file=${GCLOUD_KEY}")
+        }
+        sh('echo $SSH_PRIVKEY > ~/.ssh/id_ecdsa')
+        sh('echo $SSH_PUBKEY > ~/.ssh/id_ecdsa.pub')
+    }
+    stage('Download') {
+        // Download Terraform
+        if(!fileExists('terraform')) {
+            sh label: '', 
+               script: 'curl http://mirror/terraform/1.0.11/terraform_1.0.11_linux_amd64.zip \
+                  --output terraform_1.0.11_linux_amd64.zip \
+                  && unzip terraform_1.0.11_linux_amd64.zip'
+        }
+        sh('./terraform -version' )       
+    }
+    stage('Create-Resource') {
+        writeFile file: 'main.tf',
+            text: '''locals {
+                        region      = "us-west1"
+                        environment = "dev"
+                    }
+                  
+                    resource "google_compute_project_metadata" "my_ssh_key" {
+                        metadata = {
+                            ssh-keys = file("~/.ssh/id_ecdsa.pub")
+                        }
+                    }
+                    
+                    resource "google_compute_instance" "bastion" {
+                        name         = "bastion"
+                        machine_type = "f1-micro"
+                        zone         = "us-west1-b"
+                        scheduling {
+                            on_host_maintenance = "MIGRATE"
+                        }
+                        boot_disk {
+                            initialize_params {
+                                image = "debian-cloud/debian-9"
+                                size = "10"
+                                type = "pd-standard"
+                            }
+                            device_name = "bastion"
+                        }
+                    
+                        network_interface {
+                            subnetwork = google_compute_subnetwork.data.id
+                        }
+                        
+                        tags = ["bastion"]
+                    }
+                    
+                    resource "google_compute_network" "data" {
+                       name                    = "data"
+                       auto_create_subnetworks = false
+                    }
+                  
+                    resource "google_compute_subnetwork" "data" {
+                         name                    = "data"
+                        ip_cidr_range            = "10.1.0.0/16"
+                        region                   = "us-west1"
+                        private_ip_google_access = true
+                        network                  = google_compute_network.data.id
+                    }
+                    
+                    resource "google_compute_firewall_policy" "bastion-fw" {
+                        parent      = "** YOUR ORG ID PATH HERE **"
+                        short_name  = "jumphost-fw-policy"
+                        description = "Firewall policy for Jumphost"
+                    }
+                    resource "google_compute_firewall_policy_rule" "bastion-ssh-in" {
+                        firewall_policy = google_compute_firewall_policy.bastion-fw.id
+                        description = "Bastion forwarding rule for SSH INGRESS"
+                        direction = "INGRESS"
+                        priority = 1000
+                        action = "allow"
+                        match {
+                            layer4_configs {
+                                ip_protocol = "tcp"
+                                ports = [22]
+                            }
+                            src_ip_ranges = ["** YOUR SRC IP RANGES HERE **"]
+                        }
+                    }
+                    resource "google_compute_firewall_policy_rule" "bastion-ssh-out" {
+                        firewall_policy = google_compute_firewall_policy.bastion-fw.id
+                        description = "Bastion forwarding rule for SSH EGRESS"
+                        direction = "EGRESS"
+                        priority = 1010
+                        action = "allow"
+                        match {
+                            layer4_configs {
+                                ip_protocol = "tcp"
+                                ports = [22]
+                            }
+                            dest_ip_ranges = [** YOUR DEST IP RANGES HERE **"]
+                        }
+                    }
+'''
+        sh label: '',
+           script: "printf \
+                    'provider \"google\" {\n\tproject = \"%s\"\n\tregion = \"%s\"\n\tzone = \"%s\"\n}\n' \
+                    $GCLOUD_PROJECT_ID 'us-west1' 'us-west1-b' \
+                    > provider.tf"
+    }
+    stage("Config-Init") {
+        sh('./terraform init')
+    }
+    stage("Config-Plan") {
+        withCredentials([file(credentialsId: 'gcp-keyfile', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+            sh('./terraform plan -out s1.tfplan')
+        }
+    }
+    stage("Config-Apply") {
+        withCredentials([file(credentialsId: 'gcp-keyfile', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+            sh('./terraform apply s1.tfplan')
+        }
+    }
+    stage("Config-Show") {
+        withCredentials([file(credentialsId: 'gcp-keyfile', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+            sh('./terraform show')
+        }
+    }
+    stage("Config-Destroy") {
+        input 'Destroy?'
+        withCredentials([file(credentialsId: 'gcp-keyfile', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+            sh('./terraform destroy -auto-approve')
+        }
+    }
+}

@@ -1,0 +1,111 @@
+def GCLOUD_PROJECT_ID = "** YOUR GCP PROJECT HERE **"
+def GCLOUD_ACCOUNT    = "** YOUR GSERVICEACCOUNT HERE **"
+ 
+node('gcloud') {
+    stage('Setup') {
+        cleanWs()
+        withCredentials([file(credentialsId: 'gcp-keyfile', variable: 'GCLOUD_KEY')]) {
+            sh("gcloud auth activate-service-account --key-file=${GCLOUD_KEY}")
+        }
+    }
+    stage('Download') {
+        // Download Terraform
+        if(!fileExists('terraform')) {
+            sh label: '', 
+               script: 'curl http://mirror/terraform/1.0.11/terraform_1.0.11_linux_amd64.zip \
+                  --output terraform_1.0.11_linux_amd64.zip \
+                  && unzip terraform_1.0.11_linux_amd64.zip'
+        }
+        sh script: './terraform -version'        
+    }
+    /*
+    stage('Run') {
+        sh script: 'sudo gcloud compute regions list'
+    }
+    */
+    stage('Define Resource') {
+        /* write new file with a resource in it */
+        writeFile file: 'main.tf',
+                  text: '''locals {
+                      region      = "us-west1"
+                      environment = "dev"
+                  }
+                  
+                  resource "google_compute_instance" "helloworld" {
+                    name = "hello-world"
+                    machine_type = "n1-standard-1"
+                    
+                    boot_disk {
+                        initialize_params {
+                            image = "debian-cloud/debian-9"
+                        }
+                    }
+                    
+                    network_interface {
+                        subnetwork = data.google_compute_subnetwork.dev_us_west1_shared_vpc.self_link
+                    }
+                  }
+                  
+                  resource "google_compute_firewall" "ssh-rule" {
+                      name = "hello-ssh"
+                      network = google_compute_network.default.name
+                      
+                      allow {
+                        protocol = "tcp"
+                        ports = ["22"]
+                      }
+                      target_tags = ["helloworld"]
+                      source_ranges = ["0.0.0.0/0"]
+                  }
+                  resource "google_compute_network" "default" {
+                      name = "test-network"
+                  }
+                  variable "network" {
+                      description = "Network name"
+                      default     = "shop-neteng-dev-ef9f"
+                  }
+
+                  variable "subnetwork" {
+                      description = "Subnetwork name"
+                      default     = "shop-neteng-dev-ef9f"
+                  }
+                  
+                  data "google_compute_network" "dev_us_west1_shared_vpc" {
+                      name    = var.network
+                      project = var.network
+                  }
+                  data "google_compute_subnetwork" "dev_us_west1_shared_vpc" {
+                      name    = var.subnetwork
+                      project = var.subnetwork
+                      region  = local.region
+                  }
+    '''
+        sh script: "printf 'provider \"google\" {\n\tproject = \"%s\"\n\tregion = \"%s\"\n\tzone = \"%s\"\n}\n' $GCLOUD_PROJECT_ID 'us-west1' 'us-west1-b' > provider.tf"
+        //sh script: 'ls -l *.tf'
+        sh script: 'cat provider.tf'
+    }
+    stage("Config-Init") {
+        sh script: './terraform init'
+    }
+    stage("Config-Plan") {
+        withCredentials([file(credentialsId: 'gcp-jumphost-keyfile', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+            sh script: './terraform plan -out s1.tfplan'
+        }
+    }
+    stage("Config-Apply") {
+        withCredentials([file(credentialsId: 'gcp-jumphost-keyfile', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+            sh script: './terraform apply s1.tfplan'
+        }
+    }
+    stage("Config-Show") {
+        withCredentials([file(credentialsId: 'gcp-jumphost-keyfile', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+            sh script: './terraform show'
+        }
+    }
+    stage("Config-Destroy") {
+        input 'Destroy?'
+        withCredentials([file(credentialsId: 'gcp-jumphost-keyfile', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+            sh script: './terraform destroy -auto-approve'
+        }
+    }
+}

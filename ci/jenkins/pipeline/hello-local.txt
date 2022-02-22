@@ -1,0 +1,139 @@
+node("terraform") {
+    stage("Init") {
+        cleanWs()
+    }
+    stage("Download") {
+        // Download Terraform
+        sh label: '', script: 'curl http://mirror/terraform/1.0.11/terraform_1.0.11_linux_amd64.zip \
+                --output terraform_1.0.11_linux_amd64.zip \
+                && unzip terraform_1.0.11_linux_amd64.zip'
+            sh script: './terraform -version'        
+    }
+    stage("Define Resource") {
+        // write new file with a resource in it
+                writeFile file: 'main.tf', 
+                  text: '''terraform {
+                    required_version = ">= 0.15"
+                    required_providers {
+                        local = {
+                            source = "hashicorp/local"
+                            version = "~> 2.0"
+                        }
+                    }
+                  }
+                  
+                  resource "local_file" "literature" {
+                      filename = "art_of_war.txt"
+                      content = <<-EOT
+      Sun Tzu said: The art of war is of vital importance to the State.
+ 
+      It is a matter of life and death, a road either to safety or to 
+      ruin. Hence it is a subject of inquiry which can on no account be
+      neglected.
+EOT
+                  }
+'''
+    }
+    stage("Config-Init") {
+        sh script: './terraform init'
+    }
+    stage("Config-Plan") {
+        sh script: './terraform plan -out s1.tfplan'
+        input 'Ok?'
+    }
+    stage("Config-Apply") {
+        sh script: './terraform apply s1.tfplan'
+    }
+    stage("Config-Show") {
+        sh script: './terraform show'
+        sh script: 'ls -l art*txt'
+        sh script: 'md5sum art*txt'
+        sh script: 'cat art*txt'
+    }
+    stage("Config-Plan") {
+        sh script: './terraform plan -out s1.tfplan'
+        input 'Plan Ok?'
+    }
+    stage("Change-Resource") {
+        // write new file with a resource in it
+        writeFile file: 'main.tf', 
+                  text: '''terraform {
+                    required_version = ">= 0.15"
+                    required_providers {
+                        local = {
+                            source = "hashicorp/local"
+                            version = "~> 2.0"
+                        }
+                    }
+                  }
+                  
+                  resource "local_file" "literature" {
+                      filename = "art_of_war.txt"
+                      content = <<-EOT
+      Sun Tzu said: The art of war is of vital importance to the State.
+ 
+      It is a matter of life and death, a road either to safety or to 
+      ruin. Hence it is a subject of inquiry which can on no account be
+      neglected.
+      
+      The art of war, then, is governed by five constant factors, to be
+      taken into account in one's deliberations, when seeking to
+      determine the conditions obtaining in the field.
+    
+      These are: (1) The Moral Law; (2) Heaven; (3) Earth; (4) The
+      Commander; (5) Method and discipline. 
+EOT
+                  }
+'''
+    }
+    stage("Config-Plan") {
+        sh script: './terraform plan -out s2.tfplan'
+        input 'Plan Ok?'
+    }
+    stage("Config-Apply") {
+        sh script: './terraform apply s2.tfplan'
+    }
+    stage("Config-Show") {
+        sh script: './terraform show'
+        sh script: 'ls -l art*txt'
+        sh script: 'md5sum art*txt'
+        sh script: 'cat art*txt'
+    }
+    stage('Check') {
+        input 'Config Ok?'
+    }
+    stage('Simulate-Drift') {
+        sh script: '''
+            sed -e 's/Sun Tzu/Napoleon/g' -i art_of_war.txt
+        '''
+        sh script: 'cat art*txt'
+    }
+    stage("Config-Plan") {
+        sh script: './terraform plan -out s3.tfplan'
+        input 'Plan Ok?'
+    }
+    stage("Config-Show") {
+        sh script: './terraform show'
+    }
+    stage("Config-Refresh") {
+        sh script: './terraform refresh'
+    }
+    stage("Config-Show") {
+        sh script: './terraform show'
+    }
+    stage("Config-Plan") {
+        sh script: './terraform plan -out s4.tfplan'
+        input 'Plan Ok?'
+    }
+    stage("Config-Show") {
+        sh script: './terraform show'
+    }
+    stage("Fix-Drift") {
+        sh script: './terraform apply s4.tfplan'
+        sh script: 'cat art*txt'
+    }
+    stage('Destroy') {
+        input 'Destroy?'
+        sh script: './terraform destroy -auto-approve'
+    }
+}

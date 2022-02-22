@@ -1,0 +1,187 @@
+node("terraform") {
+    stage("Init") {
+        cleanWs()
+    }
+    stage("Download") {
+        // Download Terraform
+        sh label: '', script: 'curl http://mirror/terraform/1.0.11/terraform_1.0.11_linux_amd64.zip \
+                --output terraform_1.0.11_linux_amd64.zip \
+                && unzip terraform_1.0.11_linux_amd64.zip'
+            sh script: './terraform -version'        
+    }
+    stage("Define Resource") {
+        writeFile file: 'madlibs.tf', 
+                  text: '''
+terraform {
+  required_version = ">= 0.15"
+  required_providers {
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
+    }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.0"
+    }
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.0"
+    }
+  }
+}
+ 
+variable "words" {
+  description = "A word pool to use for Mad Libs"
+  type = object({
+    nouns      = list(string),
+    adjectives = list(string),
+    verbs      = list(string),
+    adverbs    = list(string),
+    numbers    = list(number),
+  })
+
+#  validation {
+#    condition     = length(var.words["nouns"]) >= 20
+#    error_message = "At least 20 nouns must be supplied."
+#  }
+}
+
+variable "num_files" {
+    default = 100
+    type = number
+}
+
+locals {
+    uppercase_words = {for k, v in var.words : k => [for s in v : upper(s)]}
+    v = length(var.words["nouns"])>=1 ? var.words["nouns"] : [][0]
+}
+
+resource "random_shuffle" "random_nouns" {
+  count = var.num_files 
+  input = local.uppercase_words["nouns"]
+}
+ 
+resource "random_shuffle" "random_adjectives" {
+  count = var.num_files 
+  input = local.uppercase_words["adjectives"]
+}
+ 
+resource "random_shuffle" "random_verbs" {
+  count = var.num_files 
+  input = local.uppercase_words["verbs"]
+}
+ 
+resource "random_shuffle" "random_adverbs" {
+  count = var.num_files 
+  input = local.uppercase_words["adverbs"]
+}
+ 
+resource "random_shuffle" "random_numbers" {
+  count = var.num_files 
+  input = local.uppercase_words["numbers"]
+}
+
+locals {
+    templates = tolist(fileset(path.module, "templates/*.txt"))
+}
+
+resource "local_file" "mad_libs" {
+    count = var.num_files
+    filename = "madlibs/madlib-${count.index}.txt"
+    content = templatefile(element(local.templates, count.index),
+        {
+            nouns = random_shuffle.random_nouns[count.index].result
+            adjectives = random_shuffle.random_adjectives[count.index].result
+            verbs = random_shuffle.random_verbs[count.index].result
+            adverbs = random_shuffle.random_verbs[count.index].result
+            numbers = random_shuffle.random_numbers[count.index].result
+        })
+}
+
+data "archive_file" "mad_libs" {
+    depends_on = [local_file.mad_libs]
+    type = "zip"
+    source_dir  = "${path.module}/madlibs"
+    output_path = "${path.cwd}/madlibs.zip"
+}
+'''
+        writeFile file: 'terraform.tfvars', 
+                  text: '''
+words = {
+  nouns      = ["army", "panther", "walnuts", "sandwich", "Zeus", "banana", "cat", "jellyfish", "jigsaw", "violin", "milk", "sun"]
+  adjectives = ["bitter", "sticky", "thundering", "abundant", "chubby", "grumpy"]
+  verbs      = ["run", "dance", "love", "respect", "kicked", "baked"]
+  adverbs    = ["delicately", "beautifully", "quickly", "truthfully", "wearily"]
+  numbers    = [42, 27, 101, 73, -5, 0]
+}                
+'''
+        dir("templates") {
+            writeFile file: 'alice.txt', 
+                      text: '''
+ALICE'S UPSIDE-DOWN WORLD
+ 
+Lewis Carroll's classic, "Alice's Adventures in Wonderland", as well
+as its ${adjectives[0]} sequel, "Through the Looking ${nouns[0]}",
+have enchanted both the young and old ${nouns[1]}s for the last
+${numbers[0]} years, Alice's ${adjectives[1]} adventures begin
+when she ${verbs[0]}s down a/an ${adjectives[2]} hole and lands
+in a strange and topsy-turvy ${nouns[2]}. There she discovers she
+can become a tall ${nouns[3]} or a small ${nouns[4]} simply by
+nibbling on alternate sides of a magic ${nouns[5]}. In her travels
+through Wonderland, Alice ${verbs[1]}s such remarkable
+characters as the White ${nouns[6]}, the ${adjectives[3]} Hatter,
+the Cheshire ${nouns[7]}, and even the Queen of ${nouns[8]}s.
+Unfortunately, Alice's adventures come to a/an ${adjectives[4]}
+end when Alice awakens from her ${nouns[8]}.                      
+'''
+            writeFile file: 'observatory.txt', 
+                      text: '''
+THE OBSERVATORY
+ 
+Our class went on a field trip to a ${adjectives[0]} observatory. It
+was located on top of a ${nouns[0]}, and it looked like a giant
+${nouns[1]} with a slit down its ${nouns[2]}. We went inside and
+looked through a ${nouns[3]} and were able to see ${nouns[4]}s in
+the sky that were millions of ${nouns[5]}s away. The men and
+women who ${verbs[0]} in the observatory are called
+${nouns[6]}s, and they are always watching for comets, eclipses,
+and shooting ${nouns[7]}s. An eclipse occurs when a ${nouns[8]}
+comes between the earth and the ${nouns[9]} and everything
+gets ${adjectives[1]}. Next week, we place to ${verbs[1]} the
+Museum of Modern ${nouns[10]}.
+'''
+            writeFile file: 'photographer.txt', 
+                      text: '''
+HOW TO BE A PHOTOGRAPHER
+ 
+Many ${adjectives[0]} photographers make big money
+photographing ${nouns[0]}s and beautiful ${nouns[1]}s. They sell
+the prints to ${adjectives[1]} magazines or to agencies who use
+them in ${nouns[2]} advertisements. To be a photographer, you
+have to have a ${nouns[3]} camera. You also need an
+${adjectives[2]} meter and filters and a special close-up
+${nouns[4]}. Then you either hire professional ${nouns[1]}s or go
+out and snap candid pictures of ordinary ${nouns[5]}s. But if you
+want to have a career, you must study very ${adverbs[0]} for at
+least ${numbers[0]} years.
+'''
+        }
+        sh script: 'ls -ltrR'
+    }
+    stage("Config-Init") {
+        sh script: './terraform init'
+    }
+    stage("Config-Plan") {
+        sh script: './terraform plan -out s1.tfplan'
+        input 'Plan Ok?'
+    }
+    stage("Config-Apply") {
+        sh script: './terraform apply s1.tfplan'
+    }
+    stage("Config-Show") {
+        sh script: './terraform show && ls -ltrR'
+    }
+    stage("Save-Artifact") {
+        archiveArtifacts artifacts:'madlibs.zip', fingerprint: true
+    }
+}

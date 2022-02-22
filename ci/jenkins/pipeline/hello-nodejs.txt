@@ -1,0 +1,19 @@
+node("js") {
+    stage("Init") {
+        cleanWs()
+    }
+    stage("Version-NodeJs") {
+        sh script: 'node --version'
+    }
+    stage("Version-Npm") {
+        sh script: 'npm --version'
+    }
+    stage("Version-Yarn") {
+        sh script: 'yarn --version'
+    }
+    stage("Hello") {
+        writeFile file: 'hello-world.js', 
+                  text: 'console.log("HELLO WORLD")'
+        sh script: 'node hello-world.js'
+    }
+}
