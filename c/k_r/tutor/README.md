@@ -1,0 +1,1 @@
+This folder has examples and exercises from the Tutorial (Chapter 1) of the [K&R C](https://www.informit.com/store/c-programming-language-9780131103627) book (ANSI C edition).
