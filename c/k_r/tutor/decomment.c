@@ -9,8 +9,10 @@
 #define IN_COMMENT 1
 #define OUT_COMMENT 2
 
-#define IN_QUOTE 3
-#define OUT_QUOTE 4
+#define OUT_QUOTE -1
+
+#define OPEN_BRACKET 0
+#define END_BRACKET 1
 
 #define OPEN_COMMENT "/*"
 #define END_COMMENT "*/"
@@ -29,11 +31,11 @@ int main()
     int c, state, quote, top;
     char st[2];
     top = 0;
-    quote = -1;
+    quote = OUT_QUOTE;
     state = OUT_COMMENT;
     while((c = getchar()) != EOF) 
     {
-        if(quote != -1)
+        if(quote != OUT_QUOTE)
         {
             if(c == BSLASH) {
                 putchar(c);
@@ -41,7 +43,7 @@ int main()
             }
             else 
             {
-                if(c == quote) quote = -1;
+                if(c == quote) quote = OUT_QUOTE;
                 putchar(c);
             }
         }
