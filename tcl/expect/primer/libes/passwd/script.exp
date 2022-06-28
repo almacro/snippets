@@ -1,0 +1,7 @@
+set password [lindex $argv 1]
+spawn passwd [lindex $argv 0]
+expect {$password:}
+send $password\r
+expect {$password:}
+send $password\r
+expect eof   
