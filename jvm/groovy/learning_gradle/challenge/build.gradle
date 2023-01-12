@@ -1,0 +1,23 @@
+// Create task of type Tar bundling text files
+// Rename file extension from .txt to .text
+// Compressed by Gzip and produced in builds or distributions
+// TAR task renders message "creating TAR file>"  before packaging files
+// Create new task that depends on TAR task
+
+apply plugin: 'base'
+
+task tarTextFiles(type: Tar) {
+  from 'src'
+  include '*.txt'
+  into 'text'
+  rename '(.+).txt', '$1.text'
+  compression = Compression.GZIP
+
+  doFirst {
+    println "creating TAR file"
+  }
+}
+
+task createArchive {
+  dependsOn tarTextFiles
+}
