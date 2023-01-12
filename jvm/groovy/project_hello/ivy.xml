@@ -1,0 +1,12 @@
+<ivy-module version="2.0">
+  <info organisation="org.groovy.cookbook"
+        module="hello-world" />
+  <dependencies>
+    <dependency org="org.codehaus.groovy"
+                name="groovy-all"
+                rev="3.0.14" />
+    <dependency org="junit"
+                name="junit"
+                rev="4.13.2" />
+  </dependencies>
+</ivy-module>
