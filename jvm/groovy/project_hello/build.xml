@@ -1,0 +1,121 @@
+<project xmlns:ivy="antlib:org.apache.ivy.ant"
+         basedir="."
+         default="test"
+         name="hello-world">
+  <property name="lib.dir"
+            value="lib" />
+  <property name="build.dir"
+            value="output" />
+  <property name="src.main.dir"
+            value="src/main/groovy" />
+  <property name="src.test.dir"
+            value="src/test/groovy" />
+  <property name="classes.main.dir"
+            value="${build.dir}/main" />
+  <property name="classes.test.dir"
+            value="${build.dir}/test" />
+  <property name="test.result.dir"
+            value="${build.dir}/test-results" />
+  <path id="lib.path.id">
+    <fileset dir="${lib.dir}" />
+  </path>
+  <path id="runtime.path.id">
+    <path refid="lib.path.id" />
+    <path location="${classes.main.dir}" />
+  </path>
+  <path id="test.path.id">
+    <path refid="runtime.path.id" />
+    <path location="${classes.test.dir}" />
+  </path>
+
+  <taskdef name="groovy"
+           classname="org.codehaus.groovy.ant.Groovy"
+           classpathref="lib.path.id" />
+
+  <target name="info"
+          depends="prepare"
+          description="Print project information">
+    <groovy>
+      println "Name: $project.name"
+      println 'Dependencies: '
+      project.references."lib.path.id".each { println it.name }
+    </groovy>
+  </target>
+
+  <target name="clean"
+          description="Clean output directory">
+    <delete dir="${build.dir}" />
+  </target>
+
+  <target name="prepare"
+          description="Get dependencies and create folders">
+    <ivy:retrieve />
+    <mkdir dir="${classes.main.dir}" />
+    <mkdir dir="${classes.test.dir}" />
+    <mkdir dir="${test.result.dir}" />
+    <taskdef name="groovyc"
+             classname="org.codehaus.groovy.ant.Groovyc"
+             classpathref="lib.path.id" />
+  </target>
+
+  <target name="compile"
+          depends="prepare"
+          description="Compile Groovy code">
+    <groovyc srcdir="${src.main.dir}"
+             destdir="${classes.main.dir}"
+             classpathref="lib.path.id" />
+  </target>
+
+  <target name="testCompile"
+          depends="prepare, compile"
+          description="Compile Groovy unit tests">
+    <groovyc srcdir="${src.test.dir}"
+             destdir="${classes.test.dir}"
+             classpathref="runtime.path.id" />
+  </target>
+
+  <target name="test"
+          depends="testCompile"
+          description="Run unit tests">
+    <junit>
+      <classpath refid="test.path.id" />
+      <batchtest todir="${test.result.dir}">
+        <fileset dir="${classes.test.dir}" includes="**/*" />
+        <formatter type="plain" />
+      </batchtest>
+    </junit>
+  </target>
+
+  <target name="run"
+          depends="compile"
+          description="Run program">
+    <java classname="HelloWorld">
+      <classpath refid="runtime.path.id" />
+    </java>
+  </target>
+
+  <target name="run_challenge1"
+          depends="compile"
+          description="Run program">
+    <java classname="Challenge1">
+      <classpath refid="runtime.path.id" />
+    </java>
+  </target>
+
+  <target name="run_challenge2"
+          depends="compile"
+          description="Run program">
+    <java classname="Challenge2">
+      <classpath refid="runtime.path.id" />
+    </java>
+  </target>
+
+  <target name="run_demo"
+          depends="compile"
+          description="Run program">
+    <java classname="Demo">
+      <classpath refid="runtime.path.id" />
+    </java>
+  </target>
+
+</project>
