@@ -1,0 +1,13 @@
+apply plugin: "base"
+
+task copyDocs(type: Copy) {
+  from "src"
+  into "build/docs"
+  include "**/*md"
+  includeEmptyDirs = false
+}
+
+task createZip(type: Zip) {
+  from "build/docs"
+  dependsOn copyDocs
+}
