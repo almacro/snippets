@@ -1,0 +1,28 @@
+plugins {                                                                                  
+    id 'java'                                                                              
+    id 'application'                                                                       
+}                                                                                          
+                                                                                           
+version = '1.0.0'                                                                          
+                                                                                           
+java {                                                                                     
+    sourceCompatibility = JavaVersion.VERSION_11                                           
+    targetCompatibility = JavaVersion.VERSION_11                                           
+}                                                                                          
+                                                                                           
+application {                                                                              
+    mainClass = 'com.linkedinlearning.calculator.Main'                                     
+}                                                                                          
+                                                                                           
+repositories {                                                                             
+    mavenCentral()                                                                         
+}                                                                                          
+                                                                                           
+dependencies {                                                                          implementation 'commons-cli:commons-cli:1.5.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+}
+
+test {
+     useJUnitPlatform()
+}

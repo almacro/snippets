@@ -1,0 +1,15 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+mainClassName = "com.tutor.ge.hello.Main"
+run.args = ["Reader"]
+
+repositories {
+  // Use Maven Central repository for resolving dependencies
+  mavenCentral()
+}
+
+dependencies {
+    // Use JUnit test framework
+    testImplementation 'junit:junit:4.13.2'
+}

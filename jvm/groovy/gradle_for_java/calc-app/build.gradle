@@ -1,0 +1,25 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+java {
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
+}
+
+version = '1.0.0'
+
+compileJava {
+  options.compilerArgs << "-Werror"
+}
+
+jar {
+  archiveBaseName = "Calculator"
+}
+
+application {
+  mainClass = 'com.tutor.calculator.Main';
+}
+
+javadoc {
+  options.header = 'Calculator'
+}
