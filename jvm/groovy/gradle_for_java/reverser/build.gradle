@@ -1,0 +1,21 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+version = '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+application {
+    mainClass = 'com.tutor.reverser.Main'
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  implementation 'org.apache.commons:commons-lang3:3.12.0'
+}
