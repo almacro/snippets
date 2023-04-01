@@ -2195,3 +2195,1612 @@ uranium
 ;;; *             *Oh My Gawd*                *
 ;;; *          It's Full of Stars             *
 ;;; *******************************************
+
+;;; True or false, (not (atom S)), where
+;;;   S is: (hungarian goulash)
+(let ((s '(hungarian goulash)))
+  (not (atom s)))
+
+;;; (not (atom S)) where
+;;;   S is: atom
+(let ((s 'atom))
+  (not (atom s)))
+
+;;; (not (atom S)) where
+;;;   S is: (turkish ((coffee) and) baklava)
+(let ((s '(turkish ((coffee) and) baklava)))
+  (not (atom s)))
+
+(defun leftmost(l)
+  (cond
+   ((null l) '())
+   (t (cond
+       ((atom (car l)) (car l))
+       (t (leftmost (car l)))))))
+
+;;; What is (leftmost L), where
+;;;   L is: ((hot) (tuna (and)) cheese)
+(let ((L '((hot) (tuna (and)) cheese)))
+  (leftmost L))
+
+;;; What is (leftmost L), where
+;;;  L is: (((hamburger) french) (fries (and a) coke))
+(let ((L '(((hamburger) french) (fries (and a) coke))))
+  (leftmost L))
+
+;;; What is (leftmost L), where
+;;;  L is: ((((4) four)) 17 (seventeen))
+(let ((L '((((4) four)) 17 (seventeen))))
+  (leftmost L))
+
+;;; Write OCCUR*
+(defun non-atom (a-or-l) (not (atom a-or-l)))
+
+(defun occur* (a l)
+  (cond
+   ((null l) 0)
+   ((non-atom (car l))
+    (+ (occur* a (car l))
+       (occur* a (cdr l))))
+   (t (cond
+       ((eq (car l) a)
+	(1+ (occur* a (cdr l))))
+       (t (occur* a (cdr l)))))))
+
+;;; SUBST*
+(defun subst* (new old l)
+  (cond
+   ((null l) '())
+   ((non-atom (car l))
+    (cons (subst* new old (car l)) (subst* new old (cdr l))))
+   (t (cond
+       ((eq (car l) old)
+	(cons new (subst* new old (cdr l))))
+       (t (cons (car l) (subst* new old (cdr l))))))))
+
+(let ((NEW 'orange)
+      (OLD 'banana)
+      (L '((banana)
+	   (split ((((banana ice)))
+		   (cream (banana))
+		   sherbert))
+	   (banana)
+	   (bread)
+	   (banana brandy))))
+  (subst* NEW OLD L))
+
+;;; What is (insertL* NEW OLD L), where
+;;;   NEW is: pecker
+;;;   OLD is: chuck
+;;;   and L is: ((how much (wood))
+;;;             could
+;;;             ((a (wood) chuck))
+;;;             (((chuck)))
+;;;             (if (a) ((wood chuck)))
+;;;             could chuck wood)
+(defun insertL* (new old l)
+  (cond
+   ((null l) '())
+   ((non-atom (car l))
+    (cons (insertL* new old (car l)) (insertL* new old (cdr l))))
+   (t (cond
+       ((eq (car l) old)
+	(cons new (cons old (insertL* new old (cdr l)))))
+       (t (cons (car l) (insertL* new old (cdr l))))))))
+
+(let ((NEW 'pecker)
+      (OLD 'chuck)
+      (L '((how much (wood))
+           could
+           ((a (wood) chuck))
+           (((chuck)))
+           (if (a) ((wood chuck)))
+           could chuck wood)))
+  (insertL* NEW OLD L))
+
+;;; (member* A L), where
+;;;   A is: chips
+;;;   and L is: ((potato) (chips ((with) fish) (chips)))
+(defun member* (a l)
+  (cond
+   ((null l) nil)
+   ((non-atom (car l))
+    (or (member* a (car l)) (member* a (cdr l))))
+   (t (or
+       (eq (car l) a)
+       (member* a (cdr l))))))
+
+(let ((A 'chips)
+      (L '((potato) (chips ((with) fish) (chips)))))
+  (member* A L))
+
+;;; Try to write member* without using non-atom
+(defun member* (a l)
+  (cond
+   ((null l) nil)
+   ((atom l) (eq l a))
+   (t (or
+       (member* a (car l))  
+       (member* a (cdr l))))))
+
+;;; book version
+(defun member* (a l)
+  (cond
+   ((null l) nil)
+   ((atom (car l))
+	  (or (eq (car l) a)
+	      (member* a (cdr l))))
+   (t (or (member* a (car l))
+	  (member* a (cdr l))))))
+
+;;; What is (and (atom (car l)) (eq (car l) x))
+;;;   where
+;;;   X is: pizza
+;;;   and L is: (mozzarella pizza)
+(let ((X 'pizza)
+      (L '(mozzarella pizza)))
+  (and (atom (car L)) (eq (car L) X)))
+
+;;; Give an example for X and L where the expression is true
+(let ((X 'pineapple)
+      (L '(pineapple pizza)))
+  (and (atom (car L)) (eq (car L) X)))
+
+(defun eqlistp (l1 l2)
+  (cond
+   ((and (null l1) (null l2)) t)
+   ((or (null l1) (null l2)) nil)
+   ((and (atom (car l1)) (atom (car l2)))
+    (and (eq (car l1) (car l2))
+	   (eqlistp (cdr l1) (cdr l2))))
+   (t
+    (and (eqlistp (car l1) (car l2))
+	 (eqlistp (cdr l1) (cdr l2))))))
+
+;;; (eqlistp L1 L2), where
+;;;   L1 is: (strawberry ice cream)
+;;;   and L2 is: (strawberry ice cream)
+(let ((L1 '(strawberry ice cream))
+      (L2 '(strawberry ice cream)))
+  (eqlistp L1 L2))
+
+;;; (eqlistp L1 L2), where
+;;;   L1 is: (strawberry ice cream)
+;;;   and L2 is: (strawberry cream ice)
+(let ((L1 '(strawberry ice cream))
+      (L2 '(strawberry cream ice)))
+  (eqlistp L1 L2))
+
+;;; (eqlistp L1 L2), where
+;;;   L1 is: (beef ((sausage)) (and (soda)))
+;;;   and L2 is: (beef ((salami)) (and (soda)))
+(let ((L1 '(beef ((sausage)) (and (soda))))
+      (L2 '(beef ((salami)) (and (soda)))))
+  (eqlistp L1 L2))
+
+;;; (eqlistp L1 L2), where
+;;;   L1 is: (beef ((sausage)) (and (soda)))
+;;;   and L2 is: (beef ((sausage)) (and (soda)))
+(let ((L1 '(beef ((sausage)) (and (soda))))
+      (L2 '(beef ((sausage)) (and (soda)))))
+  (eqlistp L1 L2))
+
+;;; write EQLISTP using EQANP
+(defun eqlistp (l1 l2)
+  (cond
+   ((and (null l1) (null l2)) t)
+   ((or (null l1) (null l2)) nil)
+   ((and (atom (car l1)) (atom (car l2)))
+    (and (eqanp (car l1) (car l2))
+	   (eqlistp (cdr l1) (cdr l2))))
+   (t
+    (and (eqlistp (car l1) (car l2))
+	 (eqlistp (cdr l1) (cdr l2))))))
+
+;;; book version
+(defun eqlistp (l1 l2)
+  (cond
+   ((and (null l1) (null l2)) t)
+   ((or (null l1) (null l2)) nil)
+   ((and (non-atom (car l1)) (non-atom (car l2)))
+    (and (eqlistp (car l1) (car l2))
+	 (eqlistp (cdr l1) (cdr l2))))
+   ((or (non-atom (car l1)) (non-atom (car l2))) nil)
+   (t (and
+       (eqanp (car l1) (car l2))
+       (eqlistp (cdr l1) (cdr l2))))))
+
+;;; Write the function EQUALP which determines if
+;;; two S-expressions are structurally the same
+(defun equalp (s1 s2)
+  (cond
+   ((and (null s1) (null s2)) t)
+   ((or (null s1) (null s2)) t)
+   ((and (atom s1) (atom s2)) (eqanp s1 s2))
+   ((or (atom s1) (atom s2)) nil)
+   (t (and (equalp (car l)) (equalp (car l)))
+      (and (equalp (cdr l)) (equalp (cdr l))))))
+
+;;; book version
+(defun equalp (s1 s2)
+  (cond
+   ((and (atom s1) (atom s2))
+    (eqanp s1 s2))
+   ((and (non-atom s1) (non-atom s2))
+    (eqlistp s1 s2))
+   (t nil)))
+
+;;; Now rewrite EQLISTP using EQUALP
+(defun eqlistp (l1 l2)
+  (cond
+   ((and (null l1) (null l2)) t)
+   ((or (null l1) (null l2)) nil)
+   (t (and
+       (equalp (car l1) (car l2))
+       (eqlistp (cdr l1) (cdr l2))))))
+
+;;; How would REMBER change if we replaced LAT
+;;; by a general list L and if we replaced A
+;;; by an arbitrary S-expression S?
+(defun rember (s l)
+  (cond
+   ((null l) '())
+   ((non-atom (car l))
+    (cond
+     ((equalp (car l) s) (cdr l))
+     (t (cons (car l) (rember s (cdr l))))))
+   (t (cond
+       ((equalp (car l) s) (cdr l))
+       (t (cons (car l)
+		(rember s (cdr l))))))))
+
+;;; Can you simplify REMBER?
+(defun rember (s l)
+  (cond
+   ((null l) '())
+   (t (cond
+       ((equalp (car l) s) (cdr l))
+       (t (cons (car l)
+		(rember s (cdr l))))))))
+
+;;; Can you simplify REMBER even more?
+(defun rember (s l)
+  (cond
+   ((null l) '())
+   ((equalp (car l) s) (cdr l))
+   (t (cons (car l)
+	    (rember s (cdr l))))))
+
+;;; Simplify insertL*
+(defun insertL* (new old l)
+  (cond
+   ((null l) '())
+   ((non-atom (car l))
+    (cons (insertL* new old (car l)) (insertL* new old (cdr l))))
+   ((eq (car l) old)
+    (cons new (cons old (insertL* new old (cdr l)))))
+   (t (cons (car l) (insertL* new old (cdr l))))))
+
+;;; ************************************************
+;;; * The Seventh Commandment                      *
+;;; *                                              *
+;;; * Simplify only after the function is correct. *
+;;; ************************************************
+
+;;; === EXERCISES ===
+;;; For these exercises,
+;;;   L1 is: ((fried potatoes) (baked (fried)) tomatoes)
+;;;   L2 is: (((chili) chili (chili)))
+;;;   L3 is: ()
+;;;   LAT1 is: (chili and hot)
+;;;   LAT2 is: (baked fried)
+;;;   A is: fried
+
+;;; 6.1 Write the function DOWN* of L which puts every atom
+;;;   in L in a list by itself.
+;;;   Examples:
+;;;     (down* L2) is: ((((chili)) (chili) ((chili))))
+;;;     (down* L3) is: ()
+;;;     (down* LAT1) is: ((chili) (and) (hot))
+(defun down* (l)
+  (cond
+   ((null l) '())
+   (t (cond
+       ((atom (car l)) (cons (list (car l)) (down* (cdr l))))
+       (t (cons (down* (car l)) (down* (cdr l))))))))
+
+(let ((L1 '((fried potatoes) (baked (fried)) tomatoes)))
+  (down* L1))
+
+(let ((L2 '(((chili) chili (chili)))))
+  (down* L2))
+
+(let ((L3 '()))
+  (down* L3))
+
+(let ((LAT1 '(chili and hot)))
+  (down* LAT1))
+
+;;; 6.2 Write the function OCCURN* of LAT and L which counts
+;;;   all the atoms that are common to LAT and L.
+;;;   Examples:
+;;;     (occurN* LAT1 L2) is: 3
+;;;     (occurN* LAT2 L1) is: 3
+;;;     (occurN* LAT1 L3) is: 0
+(defun occurN* (lat l)
+  (cond
+   ((null l) 0)
+   ((atom (car l))
+    (cond ((member (car l) lat)
+	   (1+ (occurN* lat (cdr l))))
+	  (t (occurN* lat (cdr l)))))
+   (t (+ (occurN* lat (car l))
+	 (occurN* lat (cdr l))))))
+
+(let ((LAT1 '(chili and hot))
+      (L2 '(((chili) chili (chili)))))
+  (occurN* LAT1 L2))
+
+(let ((LAT2 '(baked fried))
+      (L1 '((fried potatoes) (baked (fried)) tomatoes)))
+  (occurN* LAT2 L1))
+
+(let ((LAT1 '(chili and hot))
+      (L3 '()))
+  (occurN* LAT1 L3))
+
+;;; 6.3 Write the function DOUBLE* of A and L which doubles
+;;;   each occurrence of A in L.
+;;;   Examples:
+;;;     (double* A L1) is: ((fried fried potatoes)
+;;;                         (baked (fried fried)) tomatoes)
+;;;     (double* A L2) is: (((chili) chili (chili)))
+;;;     (double* A LAT2) is: (baked fried fried)
+(defun double* (a l)
+  (cond
+   ((null l) '())
+   ((atom (car l))
+    (cond ((eqanp (car l) a)
+	   (cons a (cons a (double* a (cdr l)))))
+	  (t (cons (car l) (double* a (cdr l))))))
+   (t (cons (double* a (car l))
+	    (double* a (cdr l))))))
+
+(let ((A 'fried)
+      (L1 '((fried potatoes) (baked (fried)) tomatoes)))
+  (double* A L1))
+
+(let ((A 'fried)
+      (L2 '(((chili) chili (chili)))))
+  (double* A L2))
+
+(let ((A 'fried)
+      (LAT2 '(baked fried)))
+  (double* A LAT2))
+
+;;; 6.5 Make sure that (MEMBER* A L), where
+;;;   A is: chips
+;;;   and L is: ((potato) (chips ((with) fish) (chips)))
+;;;   really discovers the first chips.
+;;;   Can you change MEMBER* so that it finds the last chips first?
+(defun member* (a l)
+  (cond
+   ((null l) nil)
+   ((non-atom (car l))
+    (or (member* a (cdr l)) (member* a (car l))))
+   (t (or
+       (eq (car l) a)
+       (member* a (cdr l))))))
+
+;;; 6.6 Write the function LIST+ which adds up all the
+;;;   numbers in a general list of numbers
+;;;   Examples:
+;;;     When
+;;;     L1 is: ((1 (6 6 ())))
+;;;     and L2 is: ((1 2 (3 6)) 1)
+;;;     then
+;;;     (list+ L1) is: 13
+;;;     (list+ L2) is: 13
+;;;     (list+ L3) is: 0
+(defun list+ (l)
+  (cond
+   ((null l) 0)
+   ((atom (car l))
+    (cond
+     ((numberp (car l)) (+ (car l) (list+ (cdr l))))
+     (t (list+ (cdr l)))))
+   (t (+ (list+ (car l)) (list+ (cdr l))))))
+
+(let ((L1 '((1 (6 6 ())))))
+  (list+ L1))
+
+(let ((L2 '((1 2 (3 6)) 1)))
+  (list+ L2))
+
+(let ((L3 '()))
+  (list+ L3))
+
+;;; 6.7 Consider the following function G* of LVEC and ACC
+(defun g* (lvec acc)
+  (cond
+   ((null lvec) acc)
+   ((atom (car lvec))
+    (g* (cdr lvec) (+ (car lvec) acc)))
+   (t (g* (car lvec) (g* (cdr lvec) acc)))))
+;;;   The function is always applied to a (general) list
+;;;   of numbers and 0. Make up examples and find out
+;;;   what the function does.
+(g* '((1 (6 6))) 0)
+(g* '(10 20 30) 0)
+(g* '(1 2 3 4 5 6 7 8 9) 0)
+
+;;; 6.8 Consider the following function F* of L and ACC
+(defun f* (l acc)
+  (cond
+   ((null l) acc)
+   ((atom (car l))
+    (cond
+     ((member (car l) acc) (f* (cdr l) acc))
+     (t (f* (cdr l) (cons (car l) acc)))))
+   (t (f* (car l) (f* (cdr l) acc)))))
+;;;   The function is always applied to a list and the
+;;;   empty list. Make up examples for L and step through
+;;;   the applications. Generalize in one sentence what
+;;;   F* does.
+(f* '(chili fried baked chili) '())
+(f* '(german chocolate chocolate cake) '())
+(f* '(the boom boom room) '())
+(f* '(the boom boom room) '())
+(f* '(the boom boom room room) '())
+(f* '(1 2 3 0 0 9 0 0 4 3 8 2 7 1) '())
+
+
+;;;  The functions in Exercises 6.7 and 6.8 employ the accumulator
+;;;  technique. This means that they pass along an argument that
+;;;  represents the result that has been computed so far.
+;;;  When these functions reach the bottom (NULL, ZEROP), they
+;;;  just return the result contained in the accumulator.
+;;;  The original argument for the accumulator is the element
+;;;  that used to be the answer for the NULL-case.
+  
+;;; 6.9 Write the function OCCUR (see Chapter 5) of A and LAT
+;;;   using the accumulator technique. What is the original
+;;;   value for ACC?
+(defun occur (a lat acc)
+  (cond
+   ((null lat) acc)
+   (t (cond ((eq (car lat) a) (occur a (cdr lat) (1+ acc)))
+	 (t (occur a (cdr lat) acc))))))
+
+(let ((A 'kiwis)
+      (LAT '(kiwis mangoes kiwis guavas kiwis)))
+  (occur A LAT 0))
+
+
+;;; 6.10 Step through an application of the original OCCUR* and
+;;;   the original SUBST* and compare the arguments in the recursive
+;;;   applications. Can you implement these using the accumulator
+;;;   technique?
+
+(defun occur* (a l acc)
+  (cond
+   ((null l) acc)
+   ((non-atom (car l))
+    (occur* a (cdr l) (occur* a (car l) acc)))
+   (t (cond
+       ((eq (car l) a)
+	(occur* a (cdr l) (1+ acc)))
+       (t (occur* a (cdr l) acc))))))
+
+(let ((A 'fried)
+      (L '((fried potatoes) (baked (fried)) tomatoes)))
+  (occur* A L 0))
+
+(let ((A 'chili)
+      (L '(((chili) chili (chili)))))
+  (occur* A L 0))
+
+(defun subst* (new old l)
+  (cond
+   ((null l) '())
+   ((non-atom (car l))
+    (cons (subst* new old (car l)) (subst* new old (cdr l))))
+   (t (cond
+       ((eq (car l) old)
+	(cons new (subst* new old (cdr l))))
+       (t (cons (car l) (subst* new old (cdr l))))))))
+
+;;;; hmm... maybe not?
+(defun subst* (new old l) )
+
+(let ((NEW 'orange)
+      (OLD 'banana)
+      (L '((banana)
+	   (split ((((banana ice)))
+		   (cream (banana))
+		   sherbert))
+	   (banana)
+	   (bread)
+	   (banana brandy))))
+  (subst* NEW OLD L '()))
+
+;;; *******************************************
+;;; *                 Shadows                 *
+;;; *******************************************
+
+;;; Write NUMBEREDP
+(defun numberedp (aexp)
+  (cond
+   ((atom aexp) (numberp aexp))
+   ((eq (car (cdr aexp)) '+)
+    (and (numberedp (car aexp))
+	 (numberedp (car (cdr (cdr aexp))))))
+   ((eq (car (cdr aexp)) '*)
+    (and (numberedp (car aexp))
+	 (numberedp (car (cdr (cdr aexp))))))
+   ((eq (car (cdr aexp)) '^)
+    (and (numberedp (car aexp))
+	 (numberedp (car (cdr (cdr aexp))))))))
+
+;;; True or false, (NUMBEREDP X)
+;;;   where X is: 1
+(let ((x 1))
+  (numberedp x))
+
+;;; True or false, (NUMBEREDP Y)
+;;;   where Y is: (3 + (4 ^ 5))
+(let ((y '(3 + (4 ^ 5))))
+  (numberedp y))
+
+;;; True or false, (NUMBEREDP Z)
+;;;   where Z is: (2 * sausage)
+(let ((z '(2 * sausage)))
+  (numberedp z))
+
+;;; Since AEXP is known to be an arithmetic expression,
+;;; can NUMBEREDP be written in a simpler way?
+(defun numberedp (aexp)
+  (cond
+   ((atom aexp) (numberp aexp))
+   (t (and
+       (numberedp (car aexp))
+       (numberedp (car (cdr (cdr aexp))))))))
+
+;;; ************************************************
+;;; * The Eighth Commandment                       *
+;;; *                                              *
+;;; * Recur on all the subparts that are of the    *
+;;; * same nature:                                 *
+;;; * -- On all the sublists of a list.            *
+;;; * -- On all the subexpressions of a            *
+;;; *    representation of an arithmetic           *
+;;; *    expression.                               *
+;;; ************************************************
+
+;;; Write VALUE
+(defun value (aexp)
+  (cond
+   ((numberp aexp) aexp)
+   ((eq (car (cdr aexp)) '+)
+    (+ (value (car aexp))
+       (value (car (cdr (cdr aexp))))))
+   ((eq (car (cdr aexp)) '*)
+    (* (value (car aexp))
+       (value (car (cdr (cdr aexp))))))
+   (t (expt (value (car aexp))
+	    (value (car (cdr (cdr aexp))))))))
+
+;;; Write the function VALUE for a new kind of
+;;; arithmetic expression that is either
+;;;   -- a number
+;;;   -- a list of the atom PLUS followed by
+;;;      two arithmetic expressions
+;;;   -- a list of the atom TIMES followed by
+;;;      two arithmetic expressions
+;;;   -- a list of the atom EXPT followed by
+;;;      two arithmetic expressions
+(defun value (aexp)
+  (cond
+   ((numberp aexp) aexp)
+   ((eq (car aexp) 'plus)
+    (+ (value (cdr aexp))
+       (value (cdr (cdr aexp)))))
+   ((eq (car aexp) 'times)
+    (* (value (cdr aexp))
+       (value (cdr (cdr aexp)))))
+   (t (expt (value (cdr aexp))
+	    (value (cdr (cdr aexp)))))))
+
+;;; Fail
+(value '(plus 1 3))
+
+;;; Write a function 1ST-SUB-EXP
+;;; for arithmetic expressions
+(defun 1st-sub-exp (aexp)
+  (cond
+   (t (car (cdr aexp)))))
+
+;;; Write it as a one-liner
+(defun 1st-sub-exp (aexp) (car (cdr aexp)))
+
+;;; Write 2ND-SUB-EXP for arithmetic expressions
+(defun 2nd-sub-exp (aexp) (car (cdr (cdr aexp))))
+
+;;; Write (OPERATOR AEXP) to replace (CAR AEXP)
+(defun operator (aexp) (car aexp))
+
+;;; Write VALUE with helps
+(defun value (aexp)
+  (cond
+   ((numberp aexp) aexp)
+   ((eq (operator aexp) 'plus)
+    (+ (value (1st-sub-exp aexp))
+       (value (2nd-sub-exp aexp))))
+   ((eq (operator aexp) 'times)
+    (* (value (1st-sub-exp aexp))
+       (value (2nd-sub-exp aexp))))
+   (t (expt (value (1st-sub-exp aexp))
+	    (value (2nd-sub-exp aexp))))))
+
+;;; Change VALUE to support earlier style of
+;;; arithmetic expression (infix)
+(defun 1st-sub-exp (aexp) (car aexp))
+
+(defun operator (aexp) (car (cdr aexp)))
+
+;;; ************************************************
+;;; * The Ninth Commandment                        *
+;;; *                                              *
+;;; * Use help functions to abstract from          *
+;;; * representations.                             *
+;;; ************************************************
+
+;;; Write a function to test for the null list
+(defun nullp (s)
+  (and (atom s)
+       (eq s '())))
+
+;;; Write a function to test for zero
+(defun zero-p (n)
+  (nullp n))
+
+;;; Write ADD1
+(defun add1 (n)
+  (cons '() n))
+
+;;; Write SUB1
+(defun sub1 (n)
+  (cdr n))
+
+;;; Rewrite + using this representation
+(defun my-+ (n m)
+  (cond
+   ((zero-p m) n)
+   (t (add1 (my-+ n (sub1 m))))))
+
+;;; Write the function NUMBER-P
+(defun number-p (n)
+  (cond
+   ((null-p n) t)
+   (t (and
+       (null-p (car n)
+	       (number-p (cdr n)))))))
+
+;;; === EXERCISES ===
+;;; For these exercises,
+;;;   AEXP1 is: (1 + (3 * 4))
+;;;   AEXP2 is: ((3 ^ 4) + 5)
+;;;   AEXP3 is: (3 * (4 * (5 * 6)))
+;;;   AEXP4 is: 5
+;;;   L1 is: ()
+;;;   L2 is: (3 + (66 6))
+;;;   LEXP1 is: (AND (OR x y) y)
+;;;   LEXP2 is: (AND (NOT y) (OR u v))
+;;;   LEXP3 is: (OR x y)
+;;;   LEXP4 is: z
+
+;;; 7.1 So far we have neglected functions that build representations
+;;; for arithmetic expressions. For example MK+EXP
+(defun mk+exp (aexp1 aexp2)
+  (cons aexp1 (cons '+ (cons aexp2 '()))))
+;;; makes an arithmetic expression of the form (AEXP1 + AEXP2),
+;;; where AEXP1, AEXP2 are already known arithmetic expressions.
+;;; Write the corresponding functions MK*EXP and MK^EXP
+(defun mk*exp (aexp1 aexp2)
+  (cons aexp1 (cons '* (cons aexp2 '()))))
+
+(defun mk^exp (aexp1 aexp2)
+  (cons aexp1 (cons '^ (cons aexp2 '()))))
+
+;;; The arithmetic expression (1 + 3) can now be built by
+;;; (MK+EXP X Y), where
+;;;   X is: 1
+;;;   Y is: 3
+(let ((X 1)
+      (Y 3))
+  (mk+exp X Y))
+
+;;; Show how to build AEXP1, AEXP2, and AEXP3
+(let ((X 1)
+      (Y 3)
+      (Z 4))
+  (mk+exp 1 (mk*exp Y Z)))
+
+(let ((X 3)
+      (Y 4)
+      (Z 5))
+  (mk+exp (mk^exp X Y) Z))
+
+(let ((W 3)
+      (X 4)
+      (Y 5)
+      (Z 6))
+  (mk*exp W (mk*exp X (mk*exp Y Z))))
+
+;;; 7.2 A useful function is AEXPP that checks whether an
+;;; S-expression is the representation of an arithmetic
+;;; expression. Write the function AEXPP and test it with
+;;; some of the arithmetic expressions from the chapter.
+;;; Alsom test it with S-expressions that are not arithmetic
+;;; expressions.
+;;;   Examples:
+;;;     (AEXPP AEXP1) is: true
+;;;     (AEXPP AEXP2) is: true
+;;;     (AEXPP L1) is: FALSE
+;;;     (AEXPP L2) is: FALSE
+(defun is-+ (s) (and (atom s) (eq s '+)))
+(defun is-* (s) (and (atom s) (eq s '*)))
+(defun is-^ (s) (and (atom s) (eq s '^)))
+(defun is-operator (s) (or (is-+ s) (is-* s) (is-^ s)))
+
+(defun aexpp (s)
+  (cond
+   ((null s) nil)
+   ((atom s) (numberp s))
+   ((eq (length s) 3)
+    (cond
+     ((is-operator (operator s))
+      (and (aexpp (1st-sub-exp s))
+	   (aexpp (2nd-sub-exp s))))
+     (t nil)))
+   (t nil)))
+
+(aexpp 1)
+(aexpp 3)
+(aexpp 'cookie)
+
+(let ((S '(3 + (4 ^ 5))))
+  (aexpp S))
+
+(let ((S '(2 * sausage)))
+  (aexpp S))
+
+(let ((AEXP1 '(1 + (3 * 4))))
+  (aexpp AEXP1))
+
+(let ((AEXP2 '((3 ^ 4) + 5)))
+  (aexpp AEXP2))
+
+(let ((L1 '()))
+  (aexpp L1))
+
+(let ((L2 '(3 + (66 6))))
+  (aexpp L2))
+
+;;; 7.3 Write the function COUNT-OP that counts the operators in
+;;;   an arithmetic expression.
+;;;   Examples:
+;;;     (COUNT-OP AEXP1) is: 2
+;;;     (COUNT-OP AEXP3) is: 3
+;;;     (COUNT-OP AEXP4) is: 0
+(defun atom-or-nil (a) (or (null a) (atom a)))
+(defun count-op (aexp)
+  (cond
+   ((atom-or-nil aexp) 0)
+   ((is-operator (operator aexp))
+    (1+ (+ (count-op (1st-sub-exp aexp))
+	   (count-op (2nd-sub-exp aexp)))))))
+
+(let ((AEXP1 '(1 + (3 * 4))))
+  (count-op AEXP1))
+
+(let ((AEXP3 '(3 * (4 * (5 * 6)))))
+  (count-op AEXP3))
+
+(let ((AEXP4 5))
+  (count-op AEXP4))
+
+;;; Also write the functions COUNT-+, COUNT-*, and COUNT-^
+;;; that count the respective operators.
+;;;   Examples:
+;;;     (COUNT-+ AEXP1) is: 1
+;;;     (COUNT-* AEXP1) is: 1
+;;;     (COUNT-^ AEXP1) is: 0
+(defun count-+ (aexp)
+  (cond
+   ((atom-or-nil aexp) 0)
+   (t (+ (cond ((is-+ (operator aexp)) 1)
+	       (t 0))
+	 (count-+ (1st-sub-exp aexp))
+	 (count-+ (2nd-sub-exp aexp))))))
+
+(let ((AEXP1 '(1 + (3 * 4))))
+  (count-+ AEXP1))
+
+(defun count-* (aexp)
+  (cond
+   ((atom-or-nil aexp) 0)
+   (t (+ (cond ((is-* (operator aexp)) 1)
+	       (t 0))
+	 (count-* (1st-sub-exp aexp))
+	 (count-* (2nd-sub-exp aexp))))))
+
+(let ((AEXP1 '(1 + (3 * 4))))
+  (count-* AEXP1))
+
+(defun count-^ (aexp)
+  (cond
+   ((atom-or-nil aexp) 0)
+   (t (+ (cond ((is-^ (operator aexp)) 1)
+	       (t 0))
+	 (count-^ (1st-sub-exp aexp))
+	 (count-^ (2nd-sub-exp aexp))))))
+
+(let ((AEXP1 '(1 + (3 * 4))))
+  (count-^ AEXP1))
+
+;;; 7.4 Write the function COUNT-NUMBERS that counts the numbers
+;;;   in an arithmetic expression.
+;;;   Examples:
+;;;     (COUNT-NUMBERS AEXP1) is: 3
+;;;     (COUNT-NUMBERS AEXP3) is: 4
+;;;     (COUNT-NUMBERS AEXP4) is: 1
+(defun count-numbers (aexp)
+  (cond
+   ((null aexp) 0)
+   ((atom aexp) (cond ((numberp aexp) 1)
+		      (t 0)))
+   (t (+ (count-numbers (1st-sub-exp aexp))
+	 (count-numbers (2nd-sub-exp aexp))))))
+
+(let ((AEXP1 '(1 + (3 * 4))))
+  (count-numbers AEXP1))
+
+(let ((AEXP3 '(3 * (4 * (5 * 6)))))
+  (count-numbers AEXP3))
+
+(let ((AEXP4 5))
+  (count-numbers AEXP4))
+
+;;; 7.5 Since it is inconvenient to write (3 * (4 * (5 * 6))) for
+;;;  multiplying 4 numbers, we now introduce prefix notation and
+;;;  allow + and * expressions to contain 2, 3 or 4 subexpressions.
+;;;  For example, (+ 3 2 (* 7 8)), (* 3 4 5 6), etc. are now legal
+;;;  representations. ^-expressions are also in prefix form but
+;;;  still binary.
+;;;  Rewrite the functions NUMBEREDP and VALUE for the new
+;;;  definition of AEXP.
+;;;  Hint: You will need the functions for extracting the third
+;;;  and fourth subexpreson of an arithmetic expression. You will
+;;;  also need a function CNT-AEXP that counts the number of
+;;;  arithmetic subexpressions in the list following an operator.
+;;;   Examples:
+;;;     When
+;;;       AEXP1 is: (+ 3 2 (* 7 8))
+;;;       AEXP2 is: (* 3 4 5 6)
+;;;       AEXP3 is: (^ AEXP1 AEXP2)
+;;;     then
+;;;       (cnt-aexp AEXP1) is: 3
+;;;       (cnt-aexp AEXP2) is: 4
+;;;       (cnt-aexp AEXP3) is: 2
+(defun operator (aexp) (car aexp))
+(let ((AEXP2 '(* 3 4 5 6)))
+  (operator AEXP2))
+
+(defun 1st-sub-exp (aexp) (car (cdr aexp)))
+(let ((AEXP2 '(* 3 4 5 6)))
+  (1st-sub-exp AEXP2))
+
+(defun 2nd-sub-exp (aexp) (car (cdr (cdr aexp))))
+(let ((AEXP2 '(* 3 4 5 6)))
+  (2nd-sub-exp AEXP2))
+
+(defun 3rd-sub-exp (aexp) (car (cdr (cdr (cdr aexp)))))
+(let ((AEXP2 '(* 3 4 5 6)))
+  (3rd-sub-exp AEXP2))
+
+(defun 4th-sub-exp (aexp) (car (cdr (cdr (cdr (cdr aexp))))))
+(let ((AEXP2 '(* 3 4 5 6)))
+  (4th-sub-exp AEXP2))
+
+(defun cnt-aexp (aexp)
+  (cond
+   ((null aexp) 0)
+   ((atom aexp) 1)
+   ((is-operator (operator aexp)) (cnt-aexp (cdr aexp)))
+   (t (1+ (cnt-aexp (cdr aexp))))))
+
+(let ((AEXP1 '(+ 3 2 (* 7 8))))
+  (cnt-aexp AEXP1))
+(let ((AEXP2 '(* 3 4 5 6)))
+  (cnt-aexp AEXP2))
+(let ((AEXP3 '(^ (+ 3 2 (* 7 8)) (* 3 4 5 6))))
+  (cnt-aexp AEXP3))
+
+(defun numberedp (aexp)
+  (cond
+   ((null aexp) nil)
+   ((atom aexp) (numberp aexp))
+   (t (cond
+       ((eq (cnt-aexp aexp) 4)
+	(and (numberedp (1st-sub-exp aexp))
+	     (numberedp (2nd-sub-exp aexp))
+	     (numberedp (3rd-sub-exp aexp))
+	     (numberedp (4th-sub-exp aexp))))
+       ((eq (cnt-aexp aexp) 3)
+	(and (numberedp (1st-sub-exp aexp))
+	     (numberedp (2nd-sub-exp aexp))
+	     (numberedp (3rd-sub-exp aexp))))
+       (t (eq (cnt-aexp aexp) 2)
+	(and (numberedp (1st-sub-exp aexp))
+	     (numberedp (2nd-sub-exp aexp))))))))
+
+(let ((AEXP1 '(+ 3 2 (* 7 8))))
+  (numberedp AEXP1))
+(let ((AEXP2 '(* 3 4 5 6)))
+  (numberedp AEXP2))
+(let ((AEXP3 '(^ (+ 3 2 (* 7 8)) (* 3 4 5 6))))
+  (numberedp AEXP3))
+
+(defun value (aexp)
+  (cond
+   ((numberp aexp) aexp)
+   ((eq (operator aexp) '+)
+    (cond ((eq (cnt-aexp aexp) 4)
+	   (+ (value (1st-sub-exp aexp))
+	      (value (2nd-sub-exp aexp))
+	      (value (3rd-sub-exp aexp))
+	      (value (4th-sub-exp aexp))))
+	  ((eq (cnt-aexp aexp) 3)
+	   (+ (value (1st-sub-exp aexp))
+	      (value (2nd-sub-exp aexp))
+	      (value (3rd-sub-exp aexp))))
+	  (t (+ (value (1st-sub-exp aexp))
+		(value (2nd-sub-exp aexp))))))
+   ((eq (operator aexp) '*)
+    (cond ((eq (cnt-aexp aexp) 4)
+	   (* (value (1st-sub-exp aexp))
+	      (value (2nd-sub-exp aexp))
+	      (value (3rd-sub-exp aexp))
+	      (value (4th-sub-exp aexp))))
+	  ((eq (cnt-aexp aexp) 3)
+	   (* (value (1st-sub-exp aexp))
+	      (value (2nd-sub-exp aexp))
+	      (value (3rd-sub-exp aexp))))
+	  (t (* (value (1st-sub-exp aexp))
+		(value (2nd-sub-exp aexp))))))
+   (t (expt (value (1st-sub-exp aexp))
+	    (value (2nd-sub-exp aexp))))))
+
+(let ((AEXP1 '(+ 3 2 (* 7 8))))
+  (value AEXP1))
+(let ((AEXP2 '(* 3 4 5 6)))
+  (value AEXP2))
+(let ((AEXP3 '(^ (+ 3 2 (* 7 8)) (* 3 4 5 6))))
+  (value AEXP3))
+
+;;; 7.7 Write the function COVEREDP of LEXP and LAT that tests
+;;;   whether all the variables in LEXP are in LAT.
+;;;   Examples:
+;;;     When
+;;;       L1 is: (x y z u)
+;;;     then
+;;;       (COVEREDP LEXP1 L1) is: true
+;;;       (COVEREDP LEXP2 L1) is: false
+;;;       (COVEREDP LEXP3 L1) is: true
+(defun coveredp (lexp lat)
+  (cond
+   ((atom lexp) (member lexp lat))
+   (t (cond
+       ((or (eq (operator lexp) 'AND)
+	    (eq (operator lexp) 'OR))
+	(and (coveredp (1st-sub-exp lexp) lat)
+	     (coveredp (2nd-sub-exp lexp) lat)))
+       (t (coveredp (1st-sub-exp lexp) lat))))))
+
+(let ((LEXP1 '(AND (OR x y) y))
+      (L1 '(x y z u)))
+  (coveredp LEXP1 L1))
+(let ((LEXP2 '(AND (NOT y) (OR u v)))
+      (L1 '(x y z u)))
+  (coveredp LEXP2 L1))
+(let ((LEXP3 '(OR x y))
+      (L1 '(x y z u)))
+  (coveredp LEXP3 L1))
+(let ((LEXP4 'z)
+      (L1 '(x y z u)))
+  (coveredp LEXP4 L1))
+(let ((LEXP4 'z)
+      (L1 '(a b c)))
+  (coveredp LEXP4 L1))
+
+;;; 7.8 For the evaluation of L-expressions we will need an AHST.
+;;;   An AHST for L-expressions is a list of pairs. The first
+;;;   component of a pair is always an atom, the second pair is
+;;;   either the number 0 (signifying false) or 1 (signifying true).
+;;;   The second component is referred to as the value of the
+;;;   variable. Write the function LOOKUP of VAR and ALIST that
+;;;   returns the value of the first pair in ALIST whose CAR is
+;;;   EQ to VAR.
+;;;   Examples:
+;;;     When
+;;;       L1 is: ((x 1) (y 0))
+;;;       L2 is: ((u 1) (v 1))
+;;;       L3 is: ()
+;;;        A is: y
+;;;        B is: u
+;;;     then
+;;;       (LOOKUP A L1) is: 0
+;;;       (LOOKUP B L2) is: 1
+;;;       (LOOKUP A L3) has no answer
+(defun pair-var (pair) (car pair))
+(defun pair-value (pair) (car (cdr pair)))
+(defun lookup (var alist)
+  (cond
+   ((null alist) nil)
+   ((eq var (pair-var (car alist)))
+    (pair-value (car alist)))
+   (t (lookup var (cdr alist)))))
+
+(let ((A 'y)
+      (L1 '((x 1) (y 0))))
+  (lookup A L1))
+(let ((B 'u)
+      (L2 '((u 1) (v 1))))
+  (lookup B L2))
+(let ((A 'y)
+      (L3 '()))
+  (lookup A L3))
+
+;;; 7.9 If the list of atoms in an alist for L-expressions contains
+;;;   all the variables of an L-expression LEXP, then LEXP can be
+;;;   evaluated with respect to this alist. (Use the function
+;;;   COVEREDP from exercise 7.7 for the appropriate test).
+;;;   Write the function MLEXP of LEXP and ALIST.
+;;;   (MLEXP LEXP ALIST) is true
+;;;   -- if LEXP is a variable and its value is true, or
+;;;   -- if LEXP is an AND-expression and both subexpressions yield true, or
+;;;   -- if LEXP is an OR-expression and one of the subexpressions yields true, or
+;;;   -- if LEXP is a NOT-expression and the subexpression yields false
+;;;   Otherwise MLEXP yields false.
+;;;   MLEXP has no answer if the expression is not covered by
+;;;   (FIRSTS ALIST)
+;;;
+;;;   Examples:
+;;;     When
+;;;       L1 is: ((x 1) (y 0) (z 0))
+;;;       L2 is: ((y 0) (u 0) (v 1))
+;;;     then
+;;;       (MLEXP LEXP1 L1) is: false
+;;;       (MLEXP LEXP2 L2) is: true
+;;;       (MLEXP LEXP4 L1) is: false
+;;;  Hint: You will need the function LOOKUP from exercise 7.8
+(defun firsts (alist)
+  (cond
+   ((null alist) '())
+   (t (cons (pair-var (car alist))
+	    (firsts (cdr alist))))))
+(firsts '((x 1) (y 0) (z 0)))
+
+(defun Mlexp (lexp alist)
+  (if (coveredp lexp (firsts alist)) 
+      (cond
+       ((atom lexp) (lookup lexp alist))
+       (t (cond
+	   ((and (eq (operator lexp) 'AND)
+		 (eq 1 (Mlexp (1st-sub-exp lexp) alist))
+		 (eq 1 (Mlexp (2nd-sub-exp lexp) alist)))
+	    1)
+	   ((and (eq (operator lexp) 'OR)
+		 (or (eq 1 (Mlexp (1st-sub-exp lexp) alist))
+		     (eq 1 (Mlexp (2nd-sub-exp lexp) alist))))
+	    1)
+	   ((and (eq (operator lexp) 'NOT)
+		 (eq 0 (Mlexp (1st-sub-exp lexp) alist)))
+	    1)
+	   (t 0))))))
+
+(let ((LEXP1 '(AND (OR x y) y))
+      (L1 '((x 1) (y 0) (z 0))))
+    (Mlexp LEXP1 L1))
+
+(let ((LEXP2 '(AND (NOT y) (OR u v)))
+      (L2 '((y 0) (u 0) (v 1))))
+  (Mlexp LEXP2 L2))
+
+(let ((LEXP4 'z)
+      (L1 '((x 1) (y 0) (z 0))))
+  (Mlexp LEXP4 L1))
+
+(let ((LEXP2 '(AND (NOT y) (OR u v)))
+      (L3 '((x 1) (y 0))))
+  (Mlexp LEXP2 L3))
+
+;;; 7.10 Extend the representation of L-expressions to AND and OR
+;;;   several subexpressions, i.e.,
+;;;     (AND x (OR u v w) y)
+;;;   Rewrite the function MLEXP from exercise 7.9 for this representation.
+;;;   Hint: Exercise 7.5 is a similar extension of arithmetic expressions.
+(defun is-and-p (op) (eq op 'AND))
+(defun is-or-p (op) (eq op 'OR))
+(defun is-not-p (op) (eq op 'NOT))
+(defun is-lop-p (op)
+  (or (is-and-p op)
+      (is-or-p op)
+      (is-not-p op)))
+
+(defun cnt-lexp (lexp)
+  (cond
+   ((null lexp) 0)
+   ((atom lexp) 1)
+   ((is-lop-p (operator lexp)) (cnt-lexp (cdr lexp)))
+   (t (1+ (cnt-lexp (cdr lexp))))))
+
+(defun Mlexp (lexp alist)
+  (if (coveredp lexp (firsts alist)) 
+      (cond
+       ((atom lexp) (lookup lexp alist))
+       (t (cond
+	   ((and (is-and-p (operator lexp))
+		 (eq (cnt-lexp lexp) 4)
+		 (eq 1 (Mlexp (4th-sub-exp lexp) alist))
+		 (eq 1 (Mlexp (3rd-sub-exp lexp) alist))
+		 (eq 1 (Mlexp (2nd-sub-exp lexp) alist))
+		 (eq 1 (Mlexp (1st-sub-exp lexp) alist)))
+	    1)
+	   ((and (is-and-p (operator lexp))
+		 (eq (cnt-lexp lexp) 3)
+		 (eq 1 (Mlexp (3rd-sub-exp lexp) alist))
+		 (eq 1 (Mlexp (2nd-sub-exp lexp) alist))
+		 (eq 1 (Mlexp (1st-sub-exp lexp) alist)))
+	    1)
+	   ((and (is-and-p (operator lexp))
+		 (eq (cnt-lexp lexp) 2)
+		 (eq 1 (Mlexp (2nd-sub-exp lexp) alist))
+		 (eq 1 (Mlexp (1st-sub-exp lexp) alist)))
+	    1)
+	   ((and (is-or-p (operator lexp))
+		 (eq (cnt-lexp lexp) 4)
+		 (or (eq 1 (Mlexp (4th-sub-exp lexp) alist))
+		     (eq 1 (Mlexp (3rd-sub-exp lexp) alist))
+		     (eq 1 (Mlexp (2nd-sub-exp lexp) alist))
+		     (eq 1 (Mlexp (1st-sub-exp lexp) alist))))
+	    1)
+	   ((and (is-or-p (operator lexp))
+		 (eq (cnt-lexp lexp) 3)
+		 (or (eq 1 (Mlexp (3rd-sub-exp lexp) alist))
+		     (eq 1 (Mlexp (2nd-sub-exp lexp) alist))
+		     (eq 1 (Mlexp (1st-sub-exp lexp) alist))))
+	    1)
+	   ((and (is-or-p (operator lexp))
+		(eq (cnt-lexp lexp) 2)
+		(or (eq 1 (Mlexp (2nd-sub-exp lexp) alist))
+		    (eq 1 (Mlexp (1st-sub-exp lexp) alist))))
+	    1)
+	   ((and (is-not-p (operator lexp))
+		(eq 0 (Mlexp (1st-sub-exp lexp) alist)))
+	    1)
+	   (t 0))))))
+
+(let ((LEXP1 '(AND (OR x y) y))
+      (L1 '((x 1) (y 0) (z 0))))
+    (Mlexp LEXP1 L1))
+
+(let ((LEXP2 '(AND (NOT y) (OR u v)))
+      (L2 '((y 0) (u 0) (v 1))))
+  (Mlexp LEXP2 L2))
+
+(let ((LEXP4 'z)
+      (L1 '((x 1) (y 0) (z 0))))
+  (Mlexp LEXP4 L1))
+
+(let ((LEXP2 '(AND x (OR u v w) y))
+      (L3 '((w 1) (x 1) (y 0) (u 1) (v 0))))
+  (Mlexp LEXP2 L3))
+
+;;; *******************************************
+;;; *          Friends and Relations          *
+;;; *******************************************
+
+;;; Write SETP
+(defun setp (lat)
+  (cond
+   ((null lat) t)
+   (t (cond
+       ((member (car lat) (cdr lat))
+	nil)
+       (t (setp (cdr lat)))))))
+
+(let ((LAT '(apples peaches pears plums)))
+  (setp LAT))
+
+(setp '())
+
+;;; Simplify SETP
+(defun setp (lat)
+  (cond
+   ((null lat) t)
+   ((member (car lat) (cdr lat)) nil)
+   (t (setp (cdr lat)))))
+
+(let ((LAT '(apple 3 pear 4 9 apple 3 4)))
+  (setp LAT))
+
+;;; Write MAKESET using MEMBER
+(defun makeset (lat)
+  (cond
+   ((null lat) '())
+   ((member (car lat) (cdr lat)) (makeset (cdr lat)))
+   (t (cons (car lat) (makeset (cdr lat))))))
+
+(let ((LAT '(apple 3 pear 4 9 apple 3 4)))
+  (makeset LAT))
+
+(let ((LAT '(apple 3 pear 4 9 apple 3 4)))
+  (setp (makeset LAT)))
+
+;;; What is the result of (MAKESET LAT), where
+;;;   LAT is: (apple peach pear peach plum apple lemon peach)
+(let ((LAT '(apple peach pear peach plum apple lemon peach)))
+  (makeset LAT))
+
+;;; Write MAKESET, using MULTIREMBER
+(defun makeset (lat)
+  (cond
+   ((null lat) '())
+   (t (cons (car lat)
+	    (makeset
+	     (multirember
+	      (car lat) (cdr lat)))))))
+
+;;; What is (SUBSETP SET1 SET2), where
+;;;   SET1 is: (5 chicken wings)
+;;;   and SET2 is: (5 hamburgers 2 pieces fried chicken
+;;;             and light duckling wings)
+(let ((SET1 '(5 chicken wings))
+      (SET2 '(5 hamburgers 2 pieces fried chicken
+		and light duckling wings)))
+  (subsetp SET1 SET2))
+
+;;; What is (SUBSETP SET1 SET2), where
+;;;   SET1 is: (4 pounds of horseradish)
+;;;   and SET2 is: (four pounds chicken and 5 ounces horseradish)
+(let ((SET1 '(4 pounds of horseradish))
+      (SET2 '(four pounds chicken and 5 ounces horseradish)))
+  (subsetp SET1 SET2))
+
+;;; Write SUBSETP
+(defun subsetp (set1 set2)
+  (cond
+   ((null set1) t)
+   ((member (car set1) set2)
+    (subsetp (cdr set1) set2))
+   (t nil)))
+
+;;; Write SUBSETP with AND
+(defun subsetp (set1 set2)
+  (cond
+   ((null set1) t)
+   (t (and (member (car set1) set2)
+	   (subsetp (cdr set1) set2)))))
+
+;;; What is (EQSETP SET1 SET2), where
+;;;   SET1 is: (6 large chickens with wings)
+;;;   and SET2 is: (6 chickens with large wings)
+(let ((SET1 '(6 large chickens with wings))
+      (SET2 '(6 chickens with large wings)))
+  (eqsetp SET1 SET2))
+
+;;; Write EQSETP
+(defun eqsetp (set1 set2)
+  (and (subsetp set1 set2)
+       (subsetp set2 set1)))
+
+;;; (INTERSECTP SET1 SET2), where
+;;;   SET1 is: (tomatoes and macaroni)
+;;;   and SET2 is: (macaroni and cheese)
+(let ((SET1 '(tomatoes and macaroni))
+      (SET2 '(macaroni and cheese)))
+  (intersectp SET1 SET2))
+
+;;; Write INTERSECTP
+;;; my solution
+(defun intersectp (set1 set2)
+  (cond ((null set1) nil)
+	(t (or (subsetp set1 set2)
+	       (intersectp (cdr set1) set2)))))
+
+;;; book solution
+(defun intersectp (set1 set2)
+  (cond
+   ((null set1) nil)
+   (t (cond
+       ((member (car set1) set2) t)
+       (t (intersectp
+	   (cdr set1) set2))))))
+   
+;;; shorter version
+(defun intersectp (set1 set2)
+  (cond
+   ((null set1) nil)
+   ((member (car set1) set2) t)
+   (t (intersectp (cdr set1) set2))))
+
+;;; Write INTERSECTP with OR
+(defun intersectp (set1 set2)
+  (cond
+   ((null set1) nil)
+   (t (or (member (car set1) set2)
+	  (intersectp (cdr set1) set2)))))
+
+;;; What is (INTERSECT SET1 SET2), where
+;;;   SET1 is: (tomatoes and macaroni)
+;;;   and SET2 is: (macaroni and cheese)
+(let ((SET1 '(tomatoes and macaroni))
+      (SET2 '(macaroni and cheese)))
+  (intersect SET1 SET2))
+
+;;; Write INTERSECT
+(defun intersect (set1 set2)
+  (cond
+   ((null set1) nil)
+   ((member (car set1) set2)
+    (cons (car set1) (intersect (cdr set1) set2)))
+   (t (intersect (cdr set1) set2))))
+
+;;; Rewrite INTERSECT with
+;;;   (member (car set1) set2)
+;;; replaced with
+;;;   (not (member (car set1) set2))
+(defun intersect (set1 set2)
+  (cond
+   ((null set1) nil)
+   ((not (member (car set1) set2))
+    (intersect (cdr set1) set2))
+   (t (cons (car set1)
+	    (intersect (cdr set1) set2)))))
+
+;;; What is (UNION SET1 SET2), where
+;;;   SET1 is: (tomatoes and macaroni casserole)
+;;;   and SET2 is: (macaroni and cheese)
+(let ((SET1 '(tomatoes and macaroni casserole))
+      (SET2 '(macaroni and cheese)))
+  (union SET1 SET2))
+
+;;; my version
+(defun union (set1 set2)
+  (cond
+   ((null set1) set2)
+   ((null set2) set1)
+   (t (makeset (cons (car set1)
+	    (cons (car set2)
+		  (union (cdr set1) (cdr set2))))))))
+
+;;; book version
+(defun union (set1 set2)
+  (cond
+   ((null set1) set2)
+   ((member (car set1) set2)
+    (union (cdr set1) set2))
+   (t (cons (car set1)
+	    (union (cdr set1) set2)))))
+
+;;; COMPLEMENT function
+(defun complement (set1 set2)
+  (cond
+   ((null set1) '())
+   ((member (car set1) set2)
+    (complement (cdr set1) set2))
+   (t (cons (car set1)
+	    (complement (cdr set1) set2)))))
+
+(let ((SET1 '(tomatoes and macaroni casserole))
+      (SET2 '(macaroni and cheese)))
+  (complement SET1 SET2))
+
+;;; What is (INTERSECTALL L-SET), where
+;;;   L-SET is: ((a b c) (c a d e) (e f g h a b))
+(let ((L-SET '((a b c) (c a d e) (e f g h a b))))
+  (intersectall L-SET))
+
+;;; What is (INTERSECTALL L-SET), where
+;;;   L-SET is: ((6 pears and)
+;;;              (3 peaches and 6 peppers)
+;;;              (8 pears and 6 plums)
+;;;              (and 6 prunes with lots of apples))
+(let ((L-SET '((6 pears and)
+              (3 peaches and 6 peppers)
+              (8 pears and 6 plums)
+              (and 6 prunes with lots of apples))))
+  (intersectall L-SET))
+
+;;; Now using whatever help functions you need,
+;;; write INTERSECTALL assuming that the list of
+;;; sets is non-empty
+(defun intersectall (l-set)
+  (cond
+   ((null (cdr l-set)) (car l-set))
+   (t (intersect (car l-set)
+		 (intersectall (cdr l-set))))))
+
+;;; Is this a PAIRP
+(pear pear)
+
+;;; Is this a pair?
+(3 7)
+
+;;; Is this a pair?
+(2 pair)
+
+;;; Is this a pair?
+(full house)
+
+;;; How can you refer to the first atom of a pair?
+(car a-pair)
+
+;;; How can you refer to the second atom of a pair?
+(car (cdr a-pair))
+
+;;; How can you make a pair with two atoms?
+(cons a1 (cons a2 '()))
+
+(defun first (p) (car p))
+(defun second (p) (car (cdr p)))
+(defun makepair (a1 a2) (cons a1 (cons a2 '())))
+
+;;; Write THIRD as a one-liner
+(defun third (l) (car (cdr (cdr l))))
+
+(defun pairp (lat)
+  (and (atom (first lat))
+       (atom (second lat))
+       (null (third lat))))
+
+(pairp '(pumpkin pie))
+
+(defun relp (l)
+  (cond
+   ((null (cdr l)) (pairp (car l)))
+   (t (and (pairp (car l)) (relp (cdr l))))))
+
+;;; Is L a rel, where
+;;;   L is: ((apples peaches) (pumpkin pie))
+(let ((L '((apples peaches) (pumpkin pie))))
+  (relp L))
+
+;;; Is L a rel, where
+;;;   L is: ((4 3) (4 2) (7 6) (6 2) (3 4))
+(let ((L '((4 3) (4 2) (7 6) (6 2) (3 4))))
+  (relp L))
+
+;;; Is L a fun, where
+;;;   L is: ((4 3) (4 2) (7 6) (6 2) (3 4))
+(let ((L '((4 3) (4 2) (7 6) (6 2) (3 4))))
+  (funp L))
+
+;;; What is (FUNP REL), where
+;;;   REL is: ((8 3) (4 2) (7 6) (6 2) (3 4))
+(let ((L '((8 3) (4 2) (7 6) (6 2) (3 4))))
+  (funp L))
+
+;;; Write FUNP
+(defun funp (rel)
+  (setp (firsts rel)))
+
+;;; book version
+(defun funp (rel)
+  (cond
+   ((null rel) t)
+   ((member* (first (car rel)) (cdr rel))
+	    nil)
+   (t (funp (cdr rel)))))
+
+;;; When will this definition of FUNP work?
+;;; A: When
+;;;      (not (intersectp (firsts rel) (seconds rel)))
+
+;;; try again book version
+(defun funp (rel)
+  (cond
+   ((null rel) t)
+   ((member (first (car rel))
+	    (firsts (cdr rel)))
+    nil)
+   (t (funp (cdr rel)))))
+
+;;; Rewrite FUNP with SETP
+(defun funp (rel)
+  (setp (firsts rel)))
+
+;;; What is (REVREL REL), where
+;;;   REL is: ((8 a) (pumpkin pie) (got sick))
+(let ((REL '((8 a) (pumpkin pie) (got sick))))
+  (revrel REL))
+
+(defun revrel (l)
+  (cond
+   ((null l) '())
+   ((null (cdr l)) (cons (makepair (second (car l))
+				   (first (car l)))
+			 '()))  
+   (t (cons (makepair (second (car l))
+		      (first (car l)))
+	    (revrel (cdr l))))))
+
+;;; book version
+(defun revrel (rel)
+  (cond
+   ((null rel) '())
+   (t (cons (makepair
+	     (second (car rel))
+	     (first (car rel)))
+	    (revrel (cdr rel))))))
+
+;;; Also correct, sacrificing readability
+(defun revrel (rel)
+  (cond
+   ((null rel) '())
+   (t (cons
+       (cons
+	(car (cdr (car rel)))
+	(cons
+	 (car (car rel))
+	 '()))
+      (revrel (cdr rel))))))
+
+;;; Guess why FUN is not a FULLFUN, where
+;;;   FUN is ((8 3) (4 2) (7 6) (6 2) (3 4))
+;;; A: FUN is not a FULLFUN, since the 2 appears
+;;;    more than once as a second atom of a pair
+(let ((FUN '((8 3) (4 2) (7 6) (6 2) (3 4))))
+  (fullfunp FUN))
+
+;;; Why is T the value of (FULLFUNP FUN), where
+;;;   FUN is: ((8 3) (4 8) (7 6) (6 2) (3 4))
+;;; A: Because the list:
+;;;      (3 8 6 2 4)
+;;;    is a set
+(let ((FUN '((8 3) (4 8) (7 6) (6 2) (3 4))))
+  (fullfunp FUN))
+
+;;; What is (FULLFUNP FUN), where
+;;;   FUN is: ((grape raisin)
+;;;            (plum prune)
+;;;            (stewed prune))
+(let ((FUN '((grape raisin)
+	     (plum prune)
+	     (stewed prune))))
+  (fullfunp FUN))
+
+;;; What is (FULLFUNP FUN), where
+;;;   FUN is: ((grape raisin)
+;;;            (plum prune)
+;;;            (stewed grape))
+(let ((FUN '((grape raisin)
+	     (plum prune)
+	     (stewed grape))))
+  (fullfunp FUN))
+
+(defun fullfunp (fun)
+  (and (funp fun)
+       (setp (seconds fun))))
+
+;;; What is another function name for FULLFUNP?
+;;; A: ONE-TO-ONEP
+
+;;; Can you think of a second way to write ONE-TO-ONEP
+(defun one-to-onep (fun)
+  (funp (revrel fun)))
+
+;;; === EXERCISES ===
+;;; For these exercises,
