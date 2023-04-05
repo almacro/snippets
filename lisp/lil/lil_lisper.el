@@ -1657,7 +1657,7 @@ uranium
 
 ;;; 4.1 Write the function DUPLICATE of N and OBJ which
 ;;;   builds a LAT containing N objects OBJ.
-;;;   Examples
+;;;   Examples:
 ;;;     (duplicate THREE OBJ) is: ((x y) (x y) (x y))
 ;;;     (duplicate ZERO OBJ) is: ()
 ;;;     (duplicate ONE VEC1) is: ((1 2))
@@ -1680,7 +1680,7 @@ uranium
 
 ;;; 4.2 Write the function MULTIVEC that builds a number by multiplying
 ;;;   all the numbers in a VEC
-;;;   Examples
+;;;   Examples:
 ;;;     (multivec VEC2) is: 24
 ;;;     (multivec VEC3) is: 6
 ;;;     (multivec L) is: 1
@@ -1756,7 +1756,7 @@ uranium
 ;;; 4.7 Write the function DOT-PRODUCT of VEC1 and VEC2 that multiplies
 ;;;   corresponding numbers in vec1 and vec2 and builds a new NUMBER by
 ;;;   summing the results. The vecs, VEC1 and VEC2, are the same length.
-;;;   Examples
+;;;   Examples:
 ;;;     (dot-product VEC2 VEC2) is: 29
 ;;;     (dot-product VEC2 VEC4) is: 26
 ;;;     (dot-product VEC3 VEC4) is: 17
@@ -1778,7 +1778,7 @@ uranium
   (dot-product VEC3 VEC4))
 
 ;;; 4.8 Write the function MY-/ that divides nonnegative integers
-;;;   Examples
+;;;   Examples:
 ;;;     (MY-/ N M) is: 1
 ;;;     when N is: 7
 ;;;     and M is: 5
@@ -1815,7 +1815,7 @@ uranium
 
 ;;; 4.10 Write the function MY-<= which tests if two numbers
 ;;;   are equal or if the first is less than the second
-;;;   Examples
+;;;   Examples:
 ;;;     (MY-<= ZERO ONE) is: true
 ;;;     (MY-<= ONE ONE) is: true
 ;;;     (MY-<= THREE ONE) is: false
@@ -1987,7 +1987,7 @@ uranium
 
 ;;; 5.1 For exercise 3.4 you wrote the function SUBST-CAKE.
 ;;;   Write the function MULTISUBST-KIWIS.
-;;;   Examples
+;;;   Examples:
 ;;;     (multisubst-kiwis B LAT1) is: (bananas plums)
 ;;;     (multisubst-kiwis Y LAT2) is: (peaches apples bananas)
 ;;;     (multisubst-kiwis Y LAT4) is: (dot mangoes dot guavas dot)
@@ -2015,7 +2015,7 @@ uranium
 
 ;;; 5.2 Write the function MULTISUBST2. You can find SUBST2
 ;;;   at the end of Chapter 3.
-;;;   Examples
+;;;   Examples:
 ;;;     (multisubst2 X A B LAT1) is: (bananas comma)
 ;;;     (multisubst2 Y A B LAT3) is: (dot pears dot bananas cherries)
 ;;;     (multisubst2 A X Y LAT1) is: (bananas kiwis)
@@ -2048,7 +2048,7 @@ uranium
 
 ;;; 5.3 Write the function MULTIDOWN of LAT which
 ;;;   replaces every atom in LAT by a list containing the atom.
-;;;   Examples
+;;;   Examples:
 ;;;     (multidown LAT1) is: ((bananas) (kiwis))
 ;;;     (multidown LAT2) is: ((peaches) (apples) (bananas))
 ;;;     (multidown L4) is: ()
@@ -2074,7 +2074,7 @@ uranium
 ;;; 5.4 Write the function OCCURN of ALAT and LAT
 ;;;   which counts how many times an atom in ALAT
 ;;;   also occurs in LAT
-;;;   Examples
+;;;   Examples:
 ;;;     (occurn LAT1 L4) is: 0
 ;;;     (occurn LAT1 LAT2) is: 1
 ;;;     (occurn LAT1 LAT3) is: 2
@@ -2100,7 +2100,7 @@ uranium
 ;;;   first atom in that is in both LAT1 and LAT2.
 ;;;   Write the functions I and MULTII.
 ;;;   MULTII returns a list of atoms common to LAT1 and LAT2.
-;;;   Examples
+;;;   Examples:
 ;;;     (I LAT1 L4) is: ()
 ;;;     (I LAT1 LAT2) is: bananas
 ;;;     (I LAT1 LAT3) is: kiwis
@@ -2169,7 +2169,7 @@ uranium
 ;;; 5.9 Write the function MULTIUP of L which replaces
 ;;;   every LAT of length 1 in L by the atom in that list,
 ;;;   and which also removes every empty list
-;;;   Examples
+;;;   Examples:
 ;;;     (multiup L4) is: ()
 ;;;     (multiup L1) is: (curry chicken)
 ;;;     (multiup L2) is: (peaches (and cream))
@@ -2418,8 +2418,8 @@ uranium
    ((or (null s1) (null s2)) t)
    ((and (atom s1) (atom s2)) (eqanp s1 s2))
    ((or (atom s1) (atom s2)) nil)
-   (t (and (equalp (car l)) (equalp (car l)))
-      (and (equalp (cdr l)) (equalp (cdr l))))))
+   (t (and (equalp (car s1) (car s1))
+	   (equalp (cdr s2) (cdr s2))))))
 
 ;;; book version
 (defun equalp (s1 s2)
@@ -3505,7 +3505,7 @@ uranium
 (defun eqsetp (set1 set2)
   (and (subsetp set1 set2)
        (subsetp set2 set1)))
-
+ 
 ;;; (INTERSECTP SET1 SET2), where
 ;;;   SET1 is: (tomatoes and macaroni)
 ;;;   and SET2 is: (macaroni and cheese)
@@ -3595,7 +3595,8 @@ uranium
    (t (cons (car set1)
 	    (union (cdr set1) set2)))))
 
-;;; COMPLEMENT function
+;;; COMPLEMENT is the function which returns all the atoms
+;;; in SET1 that are not in SET2
 (defun complement (set1 set2)
   (cond
    ((null set1) '())
@@ -3804,3 +3805,342 @@ uranium
 
 ;;; === EXERCISES ===
 ;;; For these exercises,
+;;;   R1 is: ((a b) (a a) (b b))
+;;;   R2 is: ((c c))
+;;;   R3 is: ((a c) (b c))
+;;;   R4 is: ((a b) (b a))
+;;;   F1 is: ((a 1) (b 2) (c 2) (d 1))
+;;;   F2 is: ()
+;;;   F3 is: ((a 2) (b 1))
+;;;   F4 is: ((1 $) (3 *))
+;;;   D1 is: (a b)
+;;;   D2 is: (c d)
+;;;    X is: a
+
+;;; 8.1 Write the function DOMSET of REL which makes a set of all the
+;;;   atoms in REL. This set is referred to as domain of discourse of
+;;;   the relation REL.
+;;;   Examples:
+;;;     (domset R1) is: (a b)
+;;;     (domset R2) is: (c)
+;;;     (domset R3) is: (a b c)
+;;;
+;;;   Also write the function IDREL of S which makes a relation of
+;;;   all pairs of the form (D D) where D is an atom of the set S.
+;;;   (IDREL S) is called the identity relation on S.
+;;;   Examples:
+;;;     (idrel D1) is: ((a a) (b b))
+;;;     (idrel D2) is: ((c c) (d d))
+;;;     (idrel F2) is: ()
+
+(defun domset (rel)
+  (makeset (union (firsts rel) (seconds rel))))
+
+(let ((R1 '((a b) (a a) (b b))))
+  (domset R1))
+
+(let ((R2 '((c c))))
+  (domset R2))
+
+(let ((R3 '((a c) (b c))))
+  (domset R3))
+
+(defun idrel (s)
+  (cond
+   ((null s) '())
+   (t (cons
+       (cons (car s)
+	     (cons (car s) '()))
+       (idrel (cdr s))))))
+
+(let ((D1 '(a b))) (idrel D1))
+(let ((D2 '(c d))) (idrel D2))
+(let ((F2 '())) (idrel F2))
+
+;;; 8.2 Write the function REFLEXIVEP which tests whether a relation
+;;;   is reflexive if it contains all pairs of the form (D D) where
+;;;   D is an element of its domain of discourse (see Exercise 8.1).
+;;;   Examples:
+;;;     (reflexivep R1) is: true
+;;;     (reflexivep R2) is: true
+;;;     (reflexivep R3) is: false
+(defun reflexivep (rel)
+  (and (null (complement (domset rel) (makeset (firsts rel))))
+       (null (complement (domset rel) (makeset (seconds rel))))))
+
+(let ((R1 '((a b) (a a) (b b))))
+  (reflexivep R1))
+(let ((R2 '((c c))))
+  (reflexivep R2))
+(let ((R3 '((a c) (b c))))
+  (reflexivep R3))
+
+;;; 8.3 Write the function SYMMETRICP which tests whether a relation
+;;;   is symmetric. A relation is symmetric if it is EQSETP to its
+;;;   REVREL.
+;;;   Examples:
+;;;     (symmetricp R1) is: false
+;;;     (symmetricp R2) is: true
+;;;     (symmetricp F2) is: true
+(defun member-non-atom (s l)
+  (cond
+   ((null l) nil)
+   (t (or (equalp s (car l))
+	  (member-non-atom s (cdr l))))))
+
+(defun member-atom (a l)
+  (cond
+   ((null l) nil)
+   (t (or
+       (eq (car l) a)
+       (member-atom a (cdr l))))))
+
+(defun member (s l)
+  (or (member-atom s l)
+      (member-non-atom s l)))
+
+(member 'x '(w x y z))
+(member 'a '(w x y z))
+
+(member '(x y) '((a b) (x y)))
+(member '(x y) '((a b) (c d)))
+
+(intersect '((x y)) '((a b) (c d)))
+(intersect '((x y)) '((a b) (x y)))
+
+(defun symmetricp (rel)
+  (eqsetp rel (revrel rel)))
+
+(let ((R1 '((a b) (a a) (b b))))
+   (symmetricp R1))
+
+(let ((R2 '((c c))))
+    (symmetricp R2))
+
+(let ((F2 '()))
+  (symmetricp F2))
+
+;;;   Also write the function ANTISYMMETRICP which tests whether
+;;;   a relation is antisymmetric. A relation is antisymmetric if
+;;;   the intersection of the relation with its REVREL is a subset
+;;;   of the identity relation on its domain of discourse (See
+;;;   Exercise 8.1).
+;;;   Examples:
+;;;     (antisymmetricp R1) is: true
+;;;     (antisymmetricp R2) is: true
+;;;     (antisymmetricp R4) is: false
+
+(defun antisymmetricp (rel)
+  (subsetp (intersect rel (revrel rel))
+	(idrel (domset rel))))
+
+(let ((R1 '((a b) (a a) (b b))))
+    (antisymmetricp R1))
+
+(let ((R2 '((c c))))
+  (antisymmetricp R2))
+
+(let ((R4 '((a b) (b a))))
+  (antisymmetricp R4))
+
+;;;   And finally, this is the function ASYMMETRICP which tests
+;;;   whether a relation is asymmetric:
+(defun asymmetricp (rel)
+  (null (intersect rel (revrel rel))))
+
+;;;   Find out which of the sample relations is asymmetric.
+;;;   Characterize asymmetry in one sentence.
+(let ((R1 '((a b) (a a) (b b))))
+  (asymmetricp R1))
+(let ((R2 '((c c))))
+  (asymmetricp R2))
+(let ((R3 '((a c) (b c))))
+  (asymmetricp R3))
+(let ((R4 '((a b) (b a))))
+  (asymmetricp R4))
+
+;;; A: A relation is asymmetric if the intersection of the relation
+;;; with its REVREL is empty.
+
+;;; 8.4 Write the function FAPPLY of F and X which returns the value
+;;;   of F at place X. That is, it returns the SECOND of the pair whose
+;;;   FIRST is EQ to X.
+;;;   Examples:
+;;;     (Fapply F1 X) is: 1
+;;;     (Fapply F2 X) has no answer
+;;;     (Fapply F3 X) is: 2
+(defun Fapply (f x)
+  (cond
+   ((null f) '())
+   ((eq (first (car f)) x) (second (car f)))
+   (t (Fapply (cdr f) x))))
+
+(let ((F1 '((a 1) (b 2) (c 2) (d 1)))
+      (X 'a))
+  (Fapply F1 X))
+
+(let ((F2 '()) (X 'a)) (Fapply F2 X))
+
+(let ((F3 '((a 2) (b 1))) (X 'a))
+  (Fapply F3 X))
+
+;;; 8.5 Write the function FCOMP of F and G which composes two
+;;;   functions. If G contains an element (X Y) and F contains an
+;;;   element (Y Z), then the composed function (FCOMP F G) will contain
+;;;   (X Z).
+;;;   Examples:
+;;;     (Fcomp F1 F4) is: ()
+;;;     (Fcomp R1 F3) is: ()
+;;;     (Fcomp F4 F1) is: ((a $) (d $))
+;;;     (Fcomp F4 F3) is: ((b $))
+;;;
+;;; Hint: The function FAPPLY from Exercise 8.4 may be useful
+
+(defun Fcomp (f g)
+  (cond
+   ((null g) '())
+   ((member (second (car g)) (firsts f))
+    (cons (makepair (first (car g))
+		    (Fapply f (second (car g))))
+	  (Fcomp f (cdr g))))
+   (t (Fcomp f (cdr g)))))
+
+(let ((F1 '((a 1) (b 2) (c 2) (d 1)))
+      (F4 '((1 $) (3 *))))
+  (Fcomp F1 F4))
+
+(let ((F3 '((a 2) (b 1)))
+      (R1 '((a b) (a a) (b b))))
+  (Fcomp R1 F3))
+
+(let ((F1 '((a 1) (b 2) (c 2) (d 1)))
+      (F4 '((1 $) (3 *))))
+  (Fcomp F4 F1))
+
+(let ((F3 '((a 2) (b 1)))
+      (F4 '((1 $) (3 *))))
+  (Fcomp F4 F3))
+
+;;; 8.6 Write the function RAPPLY of REL and X which returns the value
+;;; set of REL at place X. The value set is the set of second
+;;; components of all the pairs whose first component is EQ to X.
+;;;   Examples:
+;;;     (Rapply F1 X) is: (1)
+;;;     (Rapply R1 X) is: (b a)
+;;;     (Rapply F2 X) is: ()
+(defun Rapply (rel x)
+  (cond
+   ((null rel) '())
+   ((eq (first (car rel)) x) (cons (second (car rel)) (Rapply (cdr rel) x)))
+   (t (Rapply (cdr rel) x))))
+
+(let ((F1 '((a 1) (b 2) (c 2) (d 1)))
+      (X 'a))
+  (Rapply F1 X))
+
+(let ((R1 '((a b) (a a) (b b)))
+      (X 'a))
+  (Rapply R1 X))
+
+(let ((F2 '()) (X 'a))
+  (Rapply F2 X))
+
+;;; 8.7 Write the function RIN of X and SET which produces a relation
+;;; of pairs (X D) where D is element of SET.
+;;;   Examples:
+;;;     (Rin X D1) is: ((a a) (a b))
+;;;     (Rin X D2) is: ((a c) (a d))
+;;;     (Rin X F2) is: ()
+(defun Rin (x set)
+    (cond
+     ((null set) '())
+     (t (cons
+	 (makepair x (car set))
+	 (Rin x (cdr set))))))
+
+(let ((D1 '(a b))
+      (X 'a))
+  (Rin X D1))
+
+(let ((D2 '(c d))
+      (X 'a))
+  (Rin X D2))
+
+(let ((F2 '())
+      (X 'a))
+  (Rin X F2))
+
+(let ((F4 '((1 $) (3 *)))
+      (X 'a))
+  (Rin X F4))
+
+;;; 8.8 Relations can be composed with the following function
+(defun Rcomp (rel1 rel2)
+  (cond
+   ((null rel1) '())
+   (t (union
+       (Rin
+	(first (car rel1))
+	(Rapply rel2 (second (car rel1))))
+       (Rcomp (cdr rel1) rel2)))))
+  
+;;; See Exercises 8.6 and 8.7
+;;; Find the values of (RCOMP R1 R3), (RCOMP R1 F1), and (RCOMP R1 R1)
+
+(let ((R1 '((a b) (a a) (b b)))
+      (R3 '((a c) (b c))))
+  (Rcomp R1 R3))
+;;; ((a c) (b c))
+
+(let ((F1 '((a 1) (b 2) (c 2) (d 1)))
+      (R1 '((a b) (a a) (b b))))
+  (Rcomp R1 F1))
+;;; ((a 2) (a 1) (b 2))
+
+(let ((R1 '((a b) (a a) (b b))))
+  (Rcomp R1 R1))
+;;; ((a b) (a a) (b b))
+
+;;; 8.9 Write the function TRANSITIVEP which tests whether a relation
+;;;   is transitive. A relation REL is transitive if the composition of
+;;;   REL with REL is a subset of REL (see Exercise 8.3).
+;;;   Examples:
+;;;     (transitivep R1) is: true
+;;;     (transitivep R3) is: true
+;;;     (transitivep F1) is: true
+(defun transitivep (rel)
+  (subsetp (Rcomp rel rel) rel))
+
+(let ((R1 '((a b) (a a) (b b))))
+  (transitivep R1))
+(let ((R3 '((a c) (b c))))
+  (transitivep R3))
+(let ((F1 '((a 1) (b 2) (c 2) (d 1))))
+  (transitivep F1))
+
+;;; Find a relation for which TRANSITIVEP yields false.
+(let ((R5 '((a b) (c d) (d a))))
+  (transitivep R5))
+
+;;; 8.10 Write the functions QUASI-ORDERP, PARTIAL-ORDERP, and
+;;;   EQUIVALENCEP which test whether a relation is quasi-order, a
+;;;   partial-order, or an equivalence relation, respectively.
+;;;   A relation is:
+;;;   --quasi-order if it is reflexive and transitive,
+;;;   --partial-order if it is quasi-order and antisymmetric,
+;;;   --equivalence relation if it is quasi-order and symmetric,
+;;; See Exercises 8.2, 8.3 and 8.9
+(defun quasi-orderp (rel)
+  (and (reflexivep rel) (transitivep rel)))
+
+(defun partial-orderp (rel)
+  (and (quasi-orderp rel) (antisymmetricp rel)))
+
+(defun equivalencep (rel)
+  (and (quasi-orderp rel) (symmetricp rel)))
+
+;;; *******************************************
+;;; *           Lambda the Ultimate           *
+;;; *******************************************
+
+
