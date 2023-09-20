@@ -1,0 +1,17 @@
+set default_branch "develop-stable"
+send_user "Please set the branch, else it defaults to $default_branch: "
+expect_user -re "(.*)\n"
+
+set branch $expect_out(1,string)
+
+#puts "the branch is $branch"
+#
+#if {$branch == "develop" || $branch == "develop-stable" } {                                                                                                 
+#        set branch $default_branch                                                                                                                          
+#}                                                                                                                                                           
+
+if {[string length $branch] eq 0} {
+        set branch $default_branch
+}
+
+puts "the branch is $branch"
