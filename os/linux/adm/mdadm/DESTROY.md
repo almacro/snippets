@@ -42,7 +42,7 @@ Edit the `/etc/fstab` file and comment out or remove the reference to the array.
 
 ### Comment or remove the array definition from the `/etc/mdadm/mdadm.conf` file:
 
-### Update the `initramfs` agin so that the early boot process does not try to bring an unavailable array online:
+### Update the `initramfs` again so that the early boot process does not try to bring an unavailable array online:
 ```
 sudo update-initramfs -u
 ```
