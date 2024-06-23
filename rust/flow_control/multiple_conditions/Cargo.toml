@@ -1,0 +1,6 @@
+[package]
+name = "multiple_conditions"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
