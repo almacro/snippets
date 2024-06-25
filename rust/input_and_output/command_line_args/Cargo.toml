@@ -1,0 +1,6 @@
+[package]
+name = "command_line_args"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
