@@ -2,3 +2,4 @@
 *-e
 *.pem
 *csr.json
+**/__pycache__/**
