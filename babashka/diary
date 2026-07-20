@@ -1,0 +1,42 @@
+#!/usr/bin/env bb
+
+(require '[clojure.tools.cli :refer [parse-opts]])
+(import '[java.time LocalDate Year]
+        '[java.time.format DateTimeFormatter])
+
+(def formats
+  {"long" "EEEE, MMMM d, yyyy"
+   "iso"  "yyyy-MM-dd"})
+
+(def cli-opts
+  [["-n" "--number N" "Number of entries to print"
+    :default 7
+    :parse-fn parse-long
+    :validate [pos? "must be positive"]]
+   ["-f" "--format FMT" (str "Output format: " (clojure.string/join " | " (keys formats)))
+    :default "long"
+    :validate [formats (str "must be one of: " (clojure.string/join ", " (keys formats)))]]
+   ["-h" "--help"]])
+
+(defn usage [summary]
+  (str "Usage: diary MONTH DAY [YEAR] [-n N] [-f FMT]\n\n"
+       "Print a sequence of diary dates starting from MONTH/DAY.\n"
+       "YEAR defaults to the current year.\n\n"
+       summary))
+
+(defn die [msg]
+  (binding [*out* *err*] (println msg))
+  (System/exit 2))
+
+(let [{:keys [options arguments errors summary]} (parse-opts *command-line-args* cli-opts)]
+  (cond
+    (:help options)   (do (println (usage summary)) (System/exit 0))
+    (seq errors)      (die (first errors))
+    (not (<= 2 (count arguments) 3))
+        (die (usage summary)))
+  (let [[m d y] (map parse-long arguments)
+        year   (or y (.getValue (Year/now)))
+        start  (LocalDate/of ^int year ^int m ^int d)
+        fmt    (DateTimeFormatter/ofPattern (formats (:format options)))]
+    (doseq [i (range (:number options))]
+      (println (.format (.plusDays start i) fmt)))))
