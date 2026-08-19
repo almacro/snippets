@@ -47,6 +47,17 @@ from downloader import filename_for  # rename to whatever you saved the script a
     # Uppercase extension
     ("https://dl.humblebundle.com/BOOK.PDF",
      "BOOK.PDF"),
+
+    # URL-level `..` in a non-final segment is a server-side canonicalization
+    # concern, not a local-filename one. basename takes only the last segment,
+    # so the derived filename can't escape cwd.
+    ("https://dl.humblebundle.com/../secret",
+     "secret"),
+
+    # RFC 3986 URL params (the `;<params>` segment) are split off by urlparse
+    # before basename runs, so `;` never reaches the filename.
+    ("https://dl.humblebundle.com/book.pdf;rm%20-rf%20~",
+     "book.pdf"),
 ])
 def test_filename_extraction_happy_paths(url, expected):
     assert filename_for(url) == expected
@@ -65,22 +76,11 @@ def test_filename_extraction_rejects_empty(url):
 
 
 @pytest.mark.parametrize("url", [
-    # Path-traversal attempts must be refused
-    "https://dl.humblebundle.com/../secret",
+    # basename of `/..` is `..` and of `/.` is `.` — both caught by the guard
+    # that rejects those literal names.
     "https://dl.humblebundle.com/..",
     "https://dl.humblebundle.com/.",
 ])
 def test_filename_extraction_rejects_traversal(url):
     assert filename_for(url) is None
-
-
-def test_filename_extraction_ignores_the_shell_injection_url():
-    """A URL crafted to break shell=True must NOT produce a filename with `;`."""
-    # urllib treats these as valid path chars, but our code passes them to curl
-    # as a single argv entry — so nothing to exploit. Regression guard.
-    url = "https://dl.humblebundle.com/book.pdf;rm%20-rf%20~"
-    name = filename_for(url)
-    # Whatever the derived name is, it can't contain a shell metachar that
-    # would execute — subprocess without shell=True treats it as a filename.
-    assert name is not None
-    assert ";" in name  # decoded semicolon is fine here — it's just a filename char
+ 
